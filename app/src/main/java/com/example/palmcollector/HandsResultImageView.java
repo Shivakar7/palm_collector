@@ -69,6 +69,15 @@ public class HandsResultImageView extends AppCompatImageView {
         }
     }
 
+    public boolean calculatehandedness(HandsResult result){
+        int numHands = result.multiHandLandmarks().size();
+        boolean isLeftHand = false;
+        for (int i = 0; i < numHands; ++i) {
+            isLeftHand = result.multiHandedness().get(i).getLabel().equals("Left");
+        }
+        return isLeftHand;
+    }
+
     private void drawLandmarksOnCanvas(
             List<NormalizedLandmark> handLandmarkList,
             boolean isLeftHand,

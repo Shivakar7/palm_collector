@@ -31,8 +31,10 @@ import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
+import kotlinx.android.synthetic.main.activity_add_subject.*
 import java.io.*
 import java.util.*
+import kotlin.properties.Delegates
 
 
 class AddSubjectActivity : AppCompatActivity() {
@@ -60,6 +62,14 @@ class AddSubjectActivity : AppCompatActivity() {
 
     private lateinit var palmRecyclerView: RecyclerView
 
+    private lateinit var leftOrRight: String
+
+    private lateinit var palmAdapter: PalmAdapter
+
+    private lateinit var subjectsList: List<Subject>
+
+    private val listOfFiles = listFiles()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_subject)
@@ -68,14 +78,16 @@ class AddSubjectActivity : AppCompatActivity() {
         )
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
 
+        initialize()
+        initClickListener()
+//        setupPalmRecyclerView()
+    }
+
+    private fun setupPalmRecyclerView(){
         val layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         palmRecyclerView = findViewById(R.id.rv_palm_images)
         palmRecyclerView.layoutManager = layoutManager
-
-        initialize()
-        initClickListener()
-
-
+        palmRecyclerView.adapter = PalmAdapter(listOfFiles)
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -84,9 +96,9 @@ class AddSubjectActivity : AppCompatActivity() {
     }
 
     private fun initClickListener() {
-        var subName = findViewById<EditText>(R.id.etSubjectName)
+        var subName = findViewById<EditText>(R.id.etSubjectName).toString()
         findViewById<ImageButton>(R.id.btn_capture_image).setOnClickListener {
-            if(subjectID.contains(subName.toString())) {
+            if(subjectID.contains(subName)) {
                 Toast.makeText(this, "Subject ID already exists", Toast.LENGTH_SHORT).show()
             } else {
                 if (checkCameraPermission() && checkStoragePermission()) {
@@ -100,6 +112,7 @@ class AddSubjectActivity : AppCompatActivity() {
 
         latestHandsResult?.let {
             Toast.makeText(this,"Landmark Count of the image obtained from jni ${NativeInterface().display(it).landmarksize}", Toast.LENGTH_SHORT).show()
+            Log.i("is this", "executing")
         }
     }
 
@@ -111,8 +124,6 @@ class AddSubjectActivity : AppCompatActivity() {
 //                performImageCapture()
 //            }
 //        }
-
-
 
         latestHandsResult?.let {
             Toast.makeText(this,"Landmark Count of the image obtained from jni ${NativeInterface().display(it).landmarksize}", Toast.LENGTH_SHORT).show()
@@ -143,10 +154,26 @@ class AddSubjectActivity : AppCompatActivity() {
                     Log.e(TAG, "Bitmap rotation error:$e")
                 }
                 if (bitmap != null) {
-                    val saveImage = saveImage(bitmap)
-                    listFiles()
-                    Log.i("Image saved", "path : : $saveImage")
+
                     hands?.send(bitmap)
+                    hands = Hands(
+                        this,
+                        HandsOptions.builder()
+                            .setStaticImageMode(true)
+                            .setMaxNumHands(2)
+                            .setRunOnGpu(RUN_ON_GPU)
+                            .build()
+                    )
+                    hands?.setResultListener { handsResult: HandsResult? ->
+                        latestHandsResult = handsResult
+                        if(imageView?.calculatehandedness(handsResult) == true){
+                            leftOrRight = "right"
+                        }else{
+                            leftOrRight = "left"
+                        }
+                    }
+                    val saveImage = saveImage(bitmap, leftOrRight)
+                    Log.i("Image saved", "path : : $saveImage")
                 }
             }
         }
@@ -165,7 +192,6 @@ class AddSubjectActivity : AppCompatActivity() {
         val pickImageIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         pickImageIntent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri)
         imageGetter!!.launch(pickImageIntent)
-
     }
 
     private fun getCaptureImageOutputUri(): Uri {
@@ -195,7 +221,8 @@ class AddSubjectActivity : AppCompatActivity() {
 //        return Uri.parse(file.absolutePath)
 //    }
 
-    private fun saveImage(finalBitmap: Bitmap) {
+    private fun saveImage(finalBitmap: Bitmap, handedness: String) {
+        var subName = findViewById<EditText>(R.id.etSubjectName).text
         val root = Environment.getExternalStorageDirectory().toString()
         val myDir = File("$root/palm_collector_images")
         Log.i("diectory", "$myDir")
@@ -205,7 +232,7 @@ class AddSubjectActivity : AppCompatActivity() {
         val generator = Random()
         var n = 10000
         n = generator.nextInt(n)
-        val fname = "Image-$n.png"
+        val fname = "${subName}_${handedness}.png"
         val file = File(myDir, fname)
         if (file.exists()) file.delete()
         try {
@@ -219,7 +246,7 @@ class AddSubjectActivity : AppCompatActivity() {
         }
     }
 
-    private fun listFiles(){
+    private fun listFiles(): List<File>{
         var path = Environment.getExternalStorageDirectory().toString()+"/palm_collector_images";
         Log.d("Files","Path:"+path);
         val directory=File(path)
@@ -227,39 +254,14 @@ class AddSubjectActivity : AppCompatActivity() {
         Log.d("Files","Size:"+files.size);
         for(i in 1..files.size)
         {
+            var strs = files[i-1].getName().split("-").toTypedArray()
+            for(i in strs){
+                Log.i("splitted","${i}")
+            }
             Log.d("Files","FileName:"+files[i-1].getName());
         }
+        return files
     }
-
-
-//    private fun storeImage(image: Bitmap) {
-//        val pictureFile: File = getOutputMediaFile()
-//        if (pictureFile == null) {
-//            Log.d(
-//                TAG,
-//                "Error creating media file, check storage permissions: "
-//            ) // e.getMessage());
-//            return
-//        }
-//        try {
-//            val fos = FileOutputStream(pictureFile)
-//            image.compress(Bitmap.CompressFormat.PNG, 90, fos)
-//            fos.close()
-//        } catch (e: FileNotFoundException) {
-//            Log.d(TAG, "File not found: " + e)
-//        } catch (e: IOException) {
-//            Log.d(TAG, "Error accessing file: " + e)
-//        }
-//    }
-
-//    private fun calculateHandedness() : Boolean {
-//        var landmarksSize = latestHandsResult?.multiHandLandmarks()?.size
-//        var handednessBool = false
-//        for (i in 0 until landmarksSize!!){
-//            handednessBool = latestHandsResult?.multiHandedness()?.get(i)?.getLabel().equals("Left")
-//        }
-//        return handednessBool
-//    }
 
     /** Sets up core workflow for static image mode.  */
     private fun setupStaticImageModePipeline() {
@@ -277,7 +279,14 @@ class AddSubjectActivity : AppCompatActivity() {
         hands?.setResultListener { handsResult: HandsResult? ->
             latestHandsResult = handsResult
             imageView?.setHandsResult(handsResult)
+            if(imageView?.calculatehandedness(handsResult) == true){
+                leftOrRight = "right"
+            }else{
+                leftOrRight = "left"
+            }
             runOnUiThread { imageView?.update() }
+
+            Log.i("hand value", "$leftOrRight")
         }
         hands?.setErrorListener { message: String, e: RuntimeException? ->
             Log.e(
@@ -285,11 +294,14 @@ class AddSubjectActivity : AppCompatActivity() {
             )
         }
 
+//        var handednessValue = latestHandsResult?.let { calculateHandedness(it) }
+//        Log.i("leftorright", handednessValue.toString())
+
 //        val leftScrollView = findViewById<RecyclerView>(R.id.rv_palm_images)
 //        leftScrollView.addView(imageView)
 //        imageView?.visibility = View.VISIBLE
 
-//         Updates the preview layout.
+//         Updates the preview layout
         val frameLayout = findViewById<FrameLayout>(R.id.fl_preview_display)
         frameLayout.removeAllViewsInLayout()
         imageView?.setImageDrawable(null)
@@ -334,8 +346,6 @@ class AddSubjectActivity : AppCompatActivity() {
     private fun checkStoragePermission(): Boolean {
         return ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
     }
-
-
 
     companion object {
         private val IMAGE_DIRECTORY = "PalmCollectorImages"

@@ -21,7 +21,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
-    lateinit var subjectList : List<Subject>
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,11 +44,6 @@ class MainActivity : AppCompatActivity() {
                 ) { /* ... */
                 }
             }).check()
-
-
-
-
-
     }
 
     // Action bar menu

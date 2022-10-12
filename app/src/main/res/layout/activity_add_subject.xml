@@ -77,7 +77,7 @@
         android:layout_width="409dp"
         android:layout_height="309dp"
         android:layout_marginEnd="8dp"
-        android:visibility="gone"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
@@ -92,6 +92,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        android:visibility="invisible"
         app:srcCompat="@drawable/image_placeholder" />
 
     <TextView
@@ -103,7 +104,7 @@
         android:layout_marginEnd="8dp"
         android:text="Please add images to display"
         android:textSize="20sp"
-        android:visibility="visible"
+        android:visibility="invisible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageView" />
@@ -112,6 +113,7 @@
         android:id="@+id/fl_preview_display"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:visibility="invisible"
         app:layout_constraintTop_toBottomOf="@id/btn_capture_image"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"

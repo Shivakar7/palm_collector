@@ -1,9 +1,9 @@
 package com.example.palmcollector
 
+import java.io.File
 import java.net.URI
 
 data class SubjectMetaData (
-    var LeftImagesURI : List<URI>,
-    var RightImagesURI : List<URI>
+    var LeftImageURI : File
 )
 

@@ -6,8 +6,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.item_list.view.*
+import java.io.File
 
 class PalmAdapter(
+    var palmList : List<File>
 
 ) : RecyclerView.Adapter<PalmAdapter.PalmViewHolder>() {
 
@@ -24,10 +26,10 @@ class PalmAdapter(
     }
 
     override fun onBindViewHolder(holder: PalmViewHolder, position: Int){
-        TODO()
+
     }
 
     override fun getItemCount(): Int {
-        TODO()
+        return palmList.size
     }
 }
