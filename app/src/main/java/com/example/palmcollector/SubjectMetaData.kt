@@ -4,6 +4,6 @@ import java.io.File
 import java.net.URI
 
 data class SubjectMetaData (
-    var LeftImageURI : File
-)
+    var Image : File
+) : java.io.Serializable
 

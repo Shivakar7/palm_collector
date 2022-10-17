@@ -27,15 +27,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.mediapipe.solutions.hands.Hands
 import com.google.mediapipe.solutions.hands.HandsOptions
 import com.google.mediapipe.solutions.hands.HandsResult
-import com.karumi.dexter.Dexter
-import com.karumi.dexter.MultiplePermissionsReport
-import com.karumi.dexter.PermissionToken
-import com.karumi.dexter.listener.multi.MultiplePermissionsListener
-import kotlinx.android.synthetic.main.activity_add_subject.*
-import java.io.*
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.InputStream
 import java.util.*
-import kotlin.properties.Delegates
-
 
 class AddSubjectActivity : AppCompatActivity() {
 
@@ -60,13 +56,24 @@ class AddSubjectActivity : AppCompatActivity() {
 
     val subjectID: MutableList<String> = ArrayList()
 
-    private lateinit var palmRecyclerView: RecyclerView
+    private lateinit var leftPalmRecyclerView: RecyclerView
+    private lateinit var rightPalmRecyclerView: RecyclerView
 
     private lateinit var leftOrRight: String
 
-    private lateinit var palmAdapter: PalmAdapter
+//    private lateinit var palmAdapter: PalmAdapter
 
-    private lateinit var subjectsList: List<Subject>
+    private var tempLeftList = mutableListOf<Bitmap>()
+    private var tempRightList = mutableListOf<Bitmap>()
+
+
+//    Models
+    private var subject: Subject? = null
+//    private lateinit var subjectList: SubjectList
+//    private lateinit var subjectMetaData: SubjectMetaData
+
+
+    private var passableSubjectList: MutableList<Subject> = mutableListOf()
 
     private val listOfFiles = listFiles()
 
@@ -80,15 +87,60 @@ class AddSubjectActivity : AppCompatActivity() {
 
         initialize()
         initClickListener()
-//        setupPalmRecyclerView()
-    }
 
-    private fun setupPalmRecyclerView(){
-        val layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-        palmRecyclerView = findViewById(R.id.rv_palm_images)
-        palmRecyclerView.layoutManager = layoutManager
-        palmRecyclerView.adapter = PalmAdapter(listOfFiles)
-    }
+        if(intent.hasExtra(MainActivity.SUBJECT_DETAILS)){
+            subject = intent.getSerializableExtra(MainActivity.SUBJECT_DETAILS) as Subject
+        }
+
+        if(subject != null){
+            var editText = findViewById<EditText>(R.id.etSubjectName)
+            editText.setText(subject!!.subjectID)
+
+            val leftLayoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+            leftPalmRecyclerView = findViewById(R.id.rv_left_palm_images)
+            leftPalmRecyclerView.layoutManager = leftLayoutManager
+            leftPalmRecyclerView.adapter = PalmAdapter(subject!!.leftList)
+
+            val rightLayoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+            rightPalmRecyclerView = findViewById(R.id.rv_right_palm_images)
+            rightPalmRecyclerView.layoutManager = rightLayoutManager
+            rightPalmRecyclerView.adapter = PalmAdapter(subject!!.rightList)
+        }
+
+//        var subId = listOfFiles[0].name.split("_")[0]
+//        for (i in 0..(listOfFiles.size - 1)) {
+//            subjectMetaData = SubjectMetaData(listOfFiles[i])
+//            subjectList = SubjectList(passableSubjectList)
+//            if(!subjectMetaData.Image.name.split("_")[0].equals(subId)){
+//                subId = subjectMetaData.Image.name.split("_")[0]
+//                var leftList: MutableList<SubjectMetaData> = mutableListOf()
+//                var rightList: MutableList<SubjectMetaData> = mutableListOf()
+//                if (subjectMetaData.Image.name.contains(subId) && subjectMetaData.Image.name.contains("left"))  {
+//                    leftList.add(subjectMetaData)
+//                } else if(subjectMetaData.Image.name.contains(subId) && subjectMetaData.Image.name.contains("right")){
+//                    rightList.add(subjectMetaData)
+//                }
+//                subject = Subject(subId, leftList, rightList)
+//                passableSubjectList.add(subject)
+//            } else {
+//                if (subjectMetaData.Image.name.contains(subId) && subjectMetaData.Image.name.contains("left")){
+//                        subjectList.subjects.find { x -> x.subjectID.equals(subId) }?.leftList?.add(subjectMetaData)
+//                } else if(subjectMetaData.Image.name.contains(subId) && subjectMetaData.Image.name.contains("right")){
+//                        subjectList.subjects.find { x -> x.subjectID.equals(subId) }?.rightList?.add(subjectMetaData)
+//                }
+//            }
+//        }
+
+//        setupPalmRecyclerView()
+        }
+
+
+//    private fun setupPalmRecyclerView(){
+//        val layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+//        palmRecyclerView = findViewById(R.id.rv_left_palm_images)
+//        palmRecyclerView.layoutManager = layoutManager
+//        palmRecyclerView.adapter = PalmAdapter(subject.leftList)
+//    }
 
     override fun onSupportNavigateUp(): Boolean {
         finish()
@@ -103,6 +155,8 @@ class AddSubjectActivity : AppCompatActivity() {
             } else {
                 if (checkCameraPermission() && checkStoragePermission()) {
                     performImageCapture()
+//                    setResult(Activity.RESULT_OK)
+//                    finish()
                 } else {
                     storagePermission?.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                     cameraPermission?.launch(Manifest.permission.CAMERA)
@@ -172,8 +226,35 @@ class AddSubjectActivity : AppCompatActivity() {
                             leftOrRight = "left"
                         }
                     }
-                    val saveImage = saveImage(bitmap, leftOrRight)
-                    Log.i("Image saved", "path : : $saveImage")
+//                    latestHandsResult?.let {
+//                        Toast.makeText(this,"Landmark Count of the image obtained from jni ${NativeInterface().display(it).landmarksize}", Toast.LENGTH_SHORT).show()
+//                    }
+                    if(latestHandsResult?.let { NativeInterface().display(it).landmarksize }==21){
+                        Toast.makeText(this,"Hand detected!", Toast.LENGTH_SHORT).show()
+
+                        if(leftOrRight == "left"){
+                            tempLeftList.add(bitmap)
+                        } else {
+                            tempRightList.add(bitmap)
+                        }
+
+
+                        val leftLayoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+                        leftPalmRecyclerView = findViewById(R.id.rv_left_palm_images)
+                        leftPalmRecyclerView.layoutManager = leftLayoutManager
+                        leftPalmRecyclerView.adapter = TempPalmAdapter(tempLeftList)
+
+                        val rightLayoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+                        rightPalmRecyclerView = findViewById(R.id.rv_right_palm_images)
+                        rightPalmRecyclerView.layoutManager = rightLayoutManager
+                        rightPalmRecyclerView.adapter = TempPalmAdapter(tempRightList)
+
+
+                        val saveImageToDirectory = saveImageToDirectory(bitmap, leftOrRight)
+                        Log.i("Image saved", "path : : $saveImageToDirectory")
+                    } else {
+                        Toast.makeText(this,"No hand detected. Try again.", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }
@@ -195,12 +276,10 @@ class AddSubjectActivity : AppCompatActivity() {
     }
 
     private fun getCaptureImageOutputUri(): Uri {
-        var subName = findViewById<EditText>(R.id.etSubjectName)
-
         return FileProvider.getUriForFile(
             this@AddSubjectActivity,
             "com.example.palmcollector.provider",
-            File(externalCacheDir!!.path, "${subName.text}__${imgCount}.png")
+            File(externalCacheDir!!.path, "temp.png")
         )
     }
 
@@ -221,7 +300,7 @@ class AddSubjectActivity : AppCompatActivity() {
 //        return Uri.parse(file.absolutePath)
 //    }
 
-    private fun saveImage(finalBitmap: Bitmap, handedness: String) {
+    private fun saveImageToDirectory(finalBitmap: Bitmap, handedness: String) {
         var subName = findViewById<EditText>(R.id.etSubjectName).text
         val root = Environment.getExternalStorageDirectory().toString()
         val myDir = File("$root/palm_collector_images")
@@ -232,7 +311,7 @@ class AddSubjectActivity : AppCompatActivity() {
         val generator = Random()
         var n = 10000
         n = generator.nextInt(n)
-        val fname = "${subName}_${handedness}.png"
+        val fname = "${subName}_${handedness}-${n}.png"
         val file = File(myDir, fname)
         if (file.exists()) file.delete()
         try {
@@ -246,20 +325,55 @@ class AddSubjectActivity : AppCompatActivity() {
         }
     }
 
+//    private fun bitmapToFile(bitmap: Bitmap): File{
+//
+//    }
+
+    private fun deleteImage(){
+        val root = Environment.getExternalStorageDirectory().toString()
+        val myDir = File("$root/palm_collector_images")
+        val file = File(myDir, "my_filename")
+        val deleted = file.delete()
+    }
+
     private fun listFiles(): List<File>{
         var path = Environment.getExternalStorageDirectory().toString()+"/palm_collector_images";
-        Log.d("Files","Path:"+path);
+        Log.d("Files","Path:"+path)
         val directory=File(path)
         val files=arrayListOf<File>(*directory.listFiles())
-        Log.d("Files","Size:"+files.size);
-        for(i in 1..files.size)
-        {
-            var strs = files[i-1].getName().split("-").toTypedArray()
-            for(i in strs){
-                Log.i("splitted","${i}")
-            }
-            Log.d("Files","FileName:"+files[i-1].getName());
+        files.sortWith { text1, text2 ->
+            text1.compareTo(text2)
         }
+        Log.d("Files","Size:"+files.size)
+//        var subject = Subject
+//        Subject.leftList = listOf<SubjectMetaData>()
+//        for(i in 0..(files.size-1))
+//        {
+//            var subjectMetaData = SubjectMetaData(files[i])
+//            if(subjectMetaData.Image.name.contains("left")){
+//                var leftList  =
+//            }
+//            for(i in 0..files.size-1){
+//                var subject = Subject(subjectMetaData.Image.name.split("_")[0], leftList)
+//            }
+//
+//            var subject = Subject()
+//            var splitted_array = subjectMetaData.Image.name.split("_").toTypedArray()
+//            for(i in splitted_array){
+//                Log.i("splitted","${i}")
+//            }
+
+//            Log.i("thevalues", "${splitted_array}")
+
+
+
+//            var strs = files[i].getName().split("_").toTypedArray()
+//            Log.i("strs","${strs}")
+//            for(i in strs){
+//                Log.i("splitted","${i}")
+//            }
+//            Log.d("Files","FileName:"+files[i-1].getName());
+//        }
         return files
     }
 
@@ -347,9 +461,9 @@ class AddSubjectActivity : AppCompatActivity() {
         return ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
     }
 
-    companion object {
-        private val IMAGE_DIRECTORY = "PalmCollectorImages"
-    }
-
-
+//    companion object {
+//        private val IMAGE_DIRECTORY = "PalmCollectorImages"
+//    }
 }
+
+

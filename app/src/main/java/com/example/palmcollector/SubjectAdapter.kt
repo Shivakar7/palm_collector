@@ -10,24 +10,10 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.item_list.view.*
 
 class SubjectAdapter(
-    var subjects : List<Subject>
+    var subjects : MutableList<Subject>
 ) : RecyclerView.Adapter<SubjectAdapter.SubjectViewHolder>() {
 
     inner class SubjectViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
-
-    val diffCallback = object : DiffUtil.ItemCallback<Subject>() {
-        override fun areItemsTheSame(oldItem: Subject, newItem: Subject): Boolean {
-            return oldItem.subjectID == newItem.subjectID
-        }
-
-        override fun areContentsTheSame(oldItem: Subject, newItem: Subject): Boolean {
-            return oldItem.hashCode() == newItem.hashCode()
-        }
-    }
-
-    val differ = AsyncListDiffer(this, diffCallback)
-
-    fun submitList(list: List<Subject>) = differ.submitList(list)
 
     private var onClickListener: OnClickListener? = null
 

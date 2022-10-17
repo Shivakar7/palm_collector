@@ -5,18 +5,18 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+
     <EditText
         android:id="@+id/etSubjectName"
-        android:layout_width="0dp"
+        android:layout_width="0sp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="40dp"
-        android:layout_marginBottom="22dp"
+        android:layout_marginStart="10sp"
+        android:layout_marginTop="28sp"
+        android:layout_marginEnd="10sp"
         android:ems="10"
         android:hint="Enter Subject"
         android:inputType="textPersonName"
-        android:paddingRight="123dp"
-        app:layout_constraintBottom_toTopOf="@+id/textLeft"
+        android:paddingRight="123sp"
         app:layout_constraintEnd_toStartOf="@+id/btn_capture_image"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -25,36 +25,43 @@
         android:id="@+id/btn_capture_image"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="9dp"
-        android:layout_marginTop="40dp"
-        android:layout_marginEnd="20dp"
-        android:layout_marginBottom="83dp"
+        android:layout_marginTop="28sp"
+        android:layout_marginEnd="16sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/etSubjectName"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0"
         app:srcCompat="@drawable/ic_camera" />
-
 
     <TextView
         android:id="@+id/textLeft"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="144dp"
-        android:layout_marginTop="36dp"
-        android:text="Images"
-        android:visibility="gone"
+        android:layout_marginStart="15sp"
+        android:layout_marginTop="20sp"
+        android:text="Left"
         android:textSize="30sp"
+        android:visibility="visible"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/etSubjectName" />
 
+    <TextView
+        android:id="@+id/textRight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="15sp"
+        android:layout_marginTop="20sp"
+        android:text="Right"
+        android:textSize="30sp"
+        android:visibility="visible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/rv_left_palm_images" />
+
     <Button
         android:id="@+id/btn_save"
-        android:layout_width="195dp"
+        android:layout_width="195sp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="1dp"
-        android:layout_marginEnd="1dp"
-        android:layout_marginBottom="24dp"
+        android:layout_marginStart="1sp"
+        android:layout_marginEnd="1sp"
+        android:layout_marginBottom="24sp"
         android:text="save"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -62,57 +69,74 @@
 
     <Button
         android:id="@+id/btn_cancel"
-        android:layout_width="195dp"
+        android:layout_width="195sp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="1dp"
-        android:layout_marginEnd="1dp"
-        android:layout_marginBottom="24dp"
+        android:layout_marginStart="1sp"
+        android:layout_marginEnd="1sp"
+        android:layout_marginBottom="24sp"
         android:text="cancel"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btn_save"
         app:layout_constraintStart_toStartOf="parent" />
 
+    <!--    <ImageView-->
+<!--        android:id="@+id/imageView"-->
+<!--        android:layout_width="300sp"-->
+<!--        android:layout_height="300sp"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toTopOf="parent"-->
+<!--        android:visibility="invisible"-->
+<!--        app:srcCompat="@drawable/image_placeholder" />-->
+
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_palm_images"
-        android:layout_width="409dp"
-        android:layout_height="309dp"
-        android:layout_marginEnd="8dp"
+        android:id="@+id/rv_right_palm_images"
+        android:layout_width="409sp"
+        android:layout_height="160sp"
+        android:layout_marginStart="8sp"
+        android:layout_marginTop="20sp"
+        android:layout_marginEnd="8sp"
+        android:paddingLeft="15sp"
+        android:paddingRight="15sp"
         android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/textRight" />
 
-    <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="300dp"
-        android:layout_height="300dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_left_palm_images"
+        android:layout_width="409sp"
+        android:layout_height="160sp"
+        android:layout_marginStart="8sp"
+        android:layout_marginTop="20sp"
+        android:layout_marginEnd="8sp"
+        android:paddingLeft="15sp"
+        android:paddingRight="15sp"
+        android:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:visibility="invisible"
-        app:srcCompat="@drawable/image_placeholder" />
+        app:layout_constraintTop_toBottomOf="@+id/textLeft"
+        tools:listitem="@layout/item_palm"/>
 
-    <TextView
-        android:id="@+id/text_add_images"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="25dp"
-        android:layout_marginEnd="8dp"
-        android:text="Please add images to display"
-        android:textSize="20sp"
-        android:visibility="invisible"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageView" />
+    <!--    <TextView-->
+<!--        android:id="@+id/text_add_images"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginStart="8sp"-->
+<!--        android:layout_marginTop="25sp"-->
+<!--        android:layout_marginEnd="8sp"-->
+<!--        android:text="Please add images to display"-->
+<!--        android:textSize="20sp"-->
+<!--        android:visibility="invisible"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        />-->
 
     <FrameLayout
         android:id="@+id/fl_preview_display"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="0sp"
+        android:layout_height="0sp"
         android:visibility="invisible"
         app:layout_constraintTop_toBottomOf="@id/btn_capture_image"
         app:layout_constraintBottom_toBottomOf="parent"

@@ -1,5 +1,5 @@
 package com.example.palmcollector
 
 data class SubjectList(
-    var subjects: List<Subject>
-)
+    var subjects: MutableList<Subject>
+): java.io.Serializable
