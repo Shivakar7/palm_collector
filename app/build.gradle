@@ -7,11 +7,12 @@ plugins {
 android {
     namespace 'com.example.palmcollector'
     compileSdk 32
+    buildToolsVersion '28.0.3'
 
     defaultConfig {
         applicationId "com.example.palmcollector"
         minSdk 21
-        targetSdk 32
+        targetSdk 28
         versionCode 1
         versionName "1.0"
 
@@ -65,7 +66,7 @@ dependencies {
     implementation "androidx.recyclerview:recyclerview-selection:1.1.0"
     //Dexter
     implementation 'com.karumi:dexter:6.2.3'
-
-
+    //Splash
+    implementation 'androidx.core:core-splashscreen:1.0.0'
 
 }

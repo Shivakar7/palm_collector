@@ -20,4 +20,9 @@
         <item name="windowNoTitle">true</item>
     </style>
 
+    <style name="Theme.App.Starting" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash_image</item>
+        <item name="android:statusBarColor">@color/hid_blue</item>
+    </style>
+
 </resources>

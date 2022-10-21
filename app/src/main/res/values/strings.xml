@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Palm Collector</string>
+    <string name="directory">Path :/storage/emulated/0/palm_collector_images</string>
 </resources>
