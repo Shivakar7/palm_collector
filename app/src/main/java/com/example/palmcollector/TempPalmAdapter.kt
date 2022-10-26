@@ -30,7 +30,6 @@ class TempPalmAdapter(
         val model = palmList[position]
 
         if (holder is TempPalmAdapter.TempPalmViewHolder) {
-//            val myBitmap = BitmapFactory.decodeFile(model.Image.getAbsolutePath())
             val myBitmap = model
             holder.itemView.ivPalmImage.setImageBitmap(myBitmap)
 

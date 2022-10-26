@@ -60,28 +60,22 @@ class AddSubjectActivity : AppCompatActivity() {
 
     private var latestHandsResult: HandsResult? = null
 
-//    val subjectID: MutableList<String> = ArrayList()
-
     private lateinit var leftPalmRecyclerView: RecyclerView
     private lateinit var rightPalmRecyclerView: RecyclerView
 
     private lateinit var leftOrRight: String
 
-//    private lateinit var palmAdapter: PalmAdapter
-
     private var tempLeftList = mutableListOf<Bitmap>()
     private var tempRightList = mutableListOf<Bitmap>()
 
-
 //    Models
     private var subject: Subject? = null
-//    private lateinit var subjectList: SubjectList
-//    private lateinit var subjectMetaData: SubjectMetaData
-
 
     private var passableSubjectList: MutableList<Subject> = mutableListOf()
 
     private val listOfFiles = listFiles()
+
+    private var palmOrBack = "palm"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -123,14 +117,10 @@ class AddSubjectActivity : AppCompatActivity() {
         return true
     }
 
-//    private fun saveInitializer(){
-//        onOptionsItemSelected()
-//    }
-
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.miSave -> {
-//                Code to save
+//              Code to save
                 if(tempLeftList.size>0 || tempRightList.size>0 ){
                     Log.i("kikiki", "workingu")
                     if(tempLeftList.size>0){
@@ -154,8 +144,6 @@ class AddSubjectActivity : AppCompatActivity() {
                 } else {
                     Toast.makeText(this,"Please click images to save", Toast.LENGTH_SHORT).show()
                 }
-
-
             }
         }
         return false
@@ -172,7 +160,7 @@ class AddSubjectActivity : AppCompatActivity() {
 
                 if (checkCameraPermission() && checkStoragePermission()) {
                     performImageCapture()
-//                    setResult(Activity.RESULT_OK)
+                    setResult(Activity.RESULT_OK)
 //                    finish()
                 } else {
 //                    Toast.makeText(this, "Please enable camera and storage permissions",Toast.LENGTH_SHORT).show()
@@ -184,13 +172,10 @@ class AddSubjectActivity : AppCompatActivity() {
                 }
             }
 
-
-        latestHandsResult?.let {
-            Toast.makeText(this,"Landmark Count of the image obtained from jni ${NativeInterface().display(it).landmarksize}", Toast.LENGTH_SHORT).show()
-            Log.i("is this", "executing")
-        }
-
-
+//        latestHandsResult?.let {
+//            Toast.makeText(this,"Landmark Count of the image obtained from jni ${NativeInterface().display(it).landmarksize}", Toast.LENGTH_SHORT).show()
+//            Log.i("is this", "executing")
+//        }
     }
 
     fun showRationalDialogForPermissions(){
@@ -199,7 +184,7 @@ class AddSubjectActivity : AppCompatActivity() {
                 " required for the app's proper functioning. "+
                 "It can be enabled under the Application Settings")
             .setPositiveButton("Go to Settings"){
-                    _,_->
+                    _,_ ->
                 try{
                     val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                     val uri = Uri.fromParts("package", packageName, null)
@@ -264,14 +249,20 @@ class AddSubjectActivity : AppCompatActivity() {
                     )
                     hands?.setResultListener { handsResult: HandsResult? ->
                         latestHandsResult = handsResult
-                        if(imageView?.calculatehandedness(handsResult) == true){
-                            leftOrRight = "right"
-                        }else{
-                            leftOrRight = "left"
-                        }
                     }
-                    if(latestHandsResult?.let { NativeInterface().display(it).landmarksize }==21){
-                        Toast.makeText(this,"Hand detected!", Toast.LENGTH_SHORT).show()
+//                        if(imageView?.calculatehandedness(handsResult) == true){
+//                            leftOrRight = "right"
+//                        } else {
+//                            leftOrRight = "left"
+//                        }
+//                        if(imageView?.frontOrBack(handsResult) == true){
+//                            palmOrBack = "palm"
+//                        } else {
+//                            palmOrBack = "back"
+//                        }
+//                    }
+                    if(latestHandsResult?.let { NativeInterface().display(it).landmarksize } == 21 && palmOrBack == "palm"){
+                        Toast.makeText(this,"Palm detected!", Toast.LENGTH_SHORT).show()
 
                         if(leftOrRight == "left"){
                             tempLeftList.add(bitmap)
@@ -288,21 +279,8 @@ class AddSubjectActivity : AppCompatActivity() {
                         rightPalmRecyclerView = findViewById(R.id.rv_right_palm_images)
                         rightPalmRecyclerView.layoutManager = rightLayoutManager
                         rightPalmRecyclerView.adapter = TempPalmAdapter(tempRightList)
-
-//                        var saveBtn = findViewById<ActionMenuItemView>(R.id.miSave)
-
-//                        findViewById<ActionMenuItemView>(R.id.miSave).setOnClickListener {
-
-
-//                        }
-
-
-//                        val saveImageToDirectory = saveImageToDirectory(bitmap, leftOrRight)
-//                        Log.i("Image saved", "path : : $saveImageToDirectory")
-
-
                     } else {
-                        Toast.makeText(this,"No hand detected. Try again.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this,"No palm detected. Try again.", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -312,9 +290,6 @@ class AddSubjectActivity : AppCompatActivity() {
     private fun performImageCapture() {
         hands?.close()
         setupStaticImageModePipeline()
-//        var subName = findViewById<EditText>(R.id.etSubjectName)
-//        subjectID.add(subName.toString())
-//        Log.i(TAG, "Array elements ${subjectID.toString()}")
 
         // Open camera to capture image
         val outputFileUri: Uri = getCaptureImageOutputUri()
@@ -389,9 +364,15 @@ class AddSubjectActivity : AppCompatActivity() {
             }else{
                 leftOrRight = "left"
             }
+            if(imageView?.frontOrBack(handsResult)==true){
+                palmOrBack = "palm"
+            }else{
+                palmOrBack = "back"
+            }
             runOnUiThread { imageView?.update() }
 
             Log.i("hand value", "$leftOrRight")
+            Log.i("palmness", "$palmOrBack")
         }
         hands?.setErrorListener { message: String, e: RuntimeException? ->
             Log.e(
@@ -416,6 +397,7 @@ class AddSubjectActivity : AppCompatActivity() {
         } else {
             height = (width / aspectRatio).toInt()
         }
+        Log.i("ScaleBitmap", "$width, $height, $originalBitmap")
         return Bitmap.createScaledBitmap(originalBitmap, width, height, false)
     }
 

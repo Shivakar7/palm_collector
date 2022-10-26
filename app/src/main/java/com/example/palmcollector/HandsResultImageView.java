@@ -39,6 +39,7 @@ public class HandsResultImageView extends AppCompatImageView {
      * @param result a {@link HandsResult} object that contains the solution outputs and the input
      *     {@link Bitmap}.
      */
+
     public void setHandsResult(HandsResult result) {
         if (result == null) {
             return;
@@ -59,6 +60,27 @@ public class HandsResultImageView extends AppCompatImageView {
                     width,
                     height);
         }
+    }
+
+    public boolean frontOrBack(HandsResult result) {
+        int numHands = result.multiHandLandmarks().size();
+        boolean isPalm = false;
+        for (int i = 0; i < numHands; ++i) {
+            if(result.multiHandedness().get(i).getLabel().equals("Left")){
+                if(result.multiHandLandmarks().get(i).getLandmark(4).getX() > result.multiHandLandmarks().get(i).getLandmark(20).getX()){
+                    isPalm = true;
+                } else {
+                    isPalm = false;
+                }
+            } else {
+                if(result.multiHandLandmarks().get(i).getLandmark(4).getX() < result.multiHandLandmarks().get(i).getLandmark(20).getX()){
+                    isPalm = true;
+                } else {
+                    isPalm = false;
+                }
+            }
+        }
+        return isPalm;
     }
 
     /** Updates the image view with the latest {@link HandsResult}. */

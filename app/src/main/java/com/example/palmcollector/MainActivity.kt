@@ -124,14 +124,6 @@ class MainActivity : AppCompatActivity() {
             }).onSameThread()
             .check()
 
-//        var subId = listOfFiles[0].name.split("_")[0]
-//        val subjectRecyclerView = findViewById<RecyclerView>(R.id.rv_subject_list)
-
-
-
-//        Log.i("heysubject", "$subject")
-//        Log.i("heysubjectlist", "$subjectList")
-//        Log.i("heysubjectmetadata", "$subjectMetaData")
     }
 
     fun showRationalDialogForPermissions(){
@@ -190,9 +182,6 @@ class MainActivity : AppCompatActivity() {
 
         if(requestCode == ADD_SUBJECT_ACTIVITY_REQUEST_CODE){
             if(resultCode == Activity.RESULT_OK){
-//                listOfFiles = listFiles()
-//                subjectAdapter.notifyDataSetChanged()
-//                this.recreate()
                 Log.i("Is this block", "executing")
                 finish()
                 startActivity(intent)
@@ -207,7 +196,8 @@ class MainActivity : AppCompatActivity() {
      * A native method that is implemented by the 'palmcollector' native library,
      * which is packaged with this application.
      */
-//    external fun stringFromJNI(): String
+
+    //external fun stringFromJNI(): String
 
     companion object {
         // Used to load the 'mldemo' library on application startup.
@@ -216,6 +206,5 @@ class MainActivity : AppCompatActivity() {
         }
         var SUBJECT_DETAILS = "subject_details"
         var ADD_SUBJECT_ACTIVITY_REQUEST_CODE = 1
-
     }
 }
