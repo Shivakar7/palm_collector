@@ -68,7 +68,9 @@ class MainActivity : AppCompatActivity() {
                                 .show()
                             val root = Environment.getExternalStorageDirectory().toString()
                             val myDir = File("$root/palm_collector_images")
-                            myDir.mkdirs()
+                            if(!myDir.exists()) {
+                                myDir.mkdirs()
+                            }
                         }
                         if(listOfFiles.isEmpty()){
                             rv_subject_list.visibility = View.INVISIBLE

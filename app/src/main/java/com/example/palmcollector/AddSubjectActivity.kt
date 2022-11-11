@@ -18,7 +18,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.WindowManager
-import android.widget.Button
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageButton
@@ -27,11 +26,12 @@ import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.view.menu.ActionMenuItemView
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.mediapipe.solutioncore.SolutionGlSurfaceView
+import com.google.mediapipe.solutions.hands.HandLandmark
 import com.google.mediapipe.solutions.hands.Hands
 import com.google.mediapipe.solutions.hands.HandsOptions
 import com.google.mediapipe.solutions.hands.HandsResult
@@ -39,7 +39,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
-import java.util.*
+import kotlin.math.sqrt
 
 class AddSubjectActivity : AppCompatActivity() {
 
@@ -68,7 +68,7 @@ class AddSubjectActivity : AppCompatActivity() {
     private var tempLeftList = mutableListOf<Bitmap>()
     private var tempRightList = mutableListOf<Bitmap>()
 
-//    Models
+    //    Models
     private var subject: Subject? = null
 
     private var passableSubjectList: MutableList<Subject> = mutableListOf()
@@ -109,7 +109,7 @@ class AddSubjectActivity : AppCompatActivity() {
             rightPalmRecyclerView.layoutManager = rightLayoutManager
             rightPalmRecyclerView.adapter = PalmAdapter(subject!!.rightList)
         }
-        }
+    }
 
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -158,24 +158,24 @@ class AddSubjectActivity : AppCompatActivity() {
         var subName = findViewById<EditText>(R.id.etSubjectName).toString()
         findViewById<ImageButton>(R.id.btn_capture_image).setOnClickListener {
 
-                if (checkCameraPermission() && checkStoragePermission()) {
-                    performImageCapture()
-                    setResult(Activity.RESULT_OK)
+            if (checkCameraPermission() && checkStoragePermission()) {
+                performXImageCapture()
+                setResult(Activity.RESULT_OK)
 //                    finish()
-                } else {
+            } else {
 //                    Toast.makeText(this, "Please enable camera and storage permissions",Toast.LENGTH_SHORT).show()
-                    showRationalDialogForPermissions()
-                    storagePermission?.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
-                    storagePermission?.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    storagePermission?.launch(Manifest.permission.MANAGE_EXTERNAL_STORAGE)
-                    cameraPermission?.launch(Manifest.permission.CAMERA)
-                }
+                showRationalDialogForPermissions()
+                storagePermission?.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                storagePermission?.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                storagePermission?.launch(Manifest.permission.MANAGE_EXTERNAL_STORAGE)
+                cameraPermission?.launch(Manifest.permission.CAMERA)
             }
+        }
 
-//        latestHandsResult?.let {
-//            Toast.makeText(this,"Landmark Count of the image obtained from jni ${NativeInterface().display(it).landmarksize}", Toast.LENGTH_SHORT).show()
-//            Log.i("is this", "executing")
-//        }
+        latestHandsResult?.let {
+            Toast.makeText(this,"Landmark Count of the image obtained from jni ${NativeInterface().display(it).landmarksize}", Toast.LENGTH_SHORT).show()
+            Log.i("is this", "executing")
+        }
     }
 
     fun showRationalDialogForPermissions(){
@@ -293,9 +293,17 @@ class AddSubjectActivity : AppCompatActivity() {
 
         // Open camera to capture image
         val outputFileUri: Uri = getCaptureImageOutputUri()
-        val pickImageIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+//        val pickImageIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+//        pickImageIntent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri)
+//        imageGetter!!.launch(pickImageIntent)
+        val pickImageIntent = Intent(this, CameraActivity::class.java)
         pickImageIntent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri)
         imageGetter!!.launch(pickImageIntent)
+    }
+
+    private fun performXImageCapture(){
+        val intent = Intent(this, CameraActivity::class.java)
+        startActivity(intent)
     }
 
     private fun getCaptureImageOutputUri(): Uri {
@@ -369,6 +377,35 @@ class AddSubjectActivity : AppCompatActivity() {
             }else{
                 palmOrBack = "back"
             }
+//            Log.i("multihand" , (latestHandsResult?.multiHandLandmarks()?.get(0)?.landmarkList?.get(HandLandmark.WRIST).toString()))
+//            Log.i("multihand" , (latestHandsResult?.multiHandLandmarks()?.get(0)?.landmarkList?.contains(HandLandmark.PINKY_TIP).toString()))
+//            Log.i("multihand", latestHandsResult?.multiHandLandmarks()?.get(0)?.getLandmarkList()
+//                ?.get(HandLandmark.WRIST)
+//                ?.hasPresence().toString())
+
+            var area = 0.0
+            var a  = 0.0
+            var b = 0.0
+            var c = 0.0
+
+            var handPointList = latestHandsResult?.multiHandLandmarks()?.get(0)?.landmarkList
+
+            a = sqrt(Math.pow(((handPointList!!.get(0).x - handPointList.get(4*0+1).x).toDouble()),
+                2.0
+            ))
+
+            Log.i("calcvalue", "$a")
+
+
+
+//            for(k in 0..3){
+//                var handPointList = latestHandsResult?.multiHandLandmarks()?.get(0)?.landmarkList
+//
+//                a = sqrt(Math.pow(((handPointList!!.get(0).x - handPointList.get(4*k+1).x).toDouble()),
+//                    2.0
+//                ))
+//            }
+
             runOnUiThread { imageView?.update() }
 
             Log.i("hand value", "$leftOrRight")
@@ -427,7 +464,3 @@ class AddSubjectActivity : AppCompatActivity() {
         return ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
     }
 }
-
-
-
-

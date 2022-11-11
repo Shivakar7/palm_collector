@@ -9,6 +9,7 @@ import android.graphics.Paint;
 import androidx.appcompat.widget.AppCompatImageView;
 import com.google.mediapipe.formats.proto.LandmarkProto;
 import com.google.mediapipe.formats.proto.LandmarkProto.NormalizedLandmark;
+import com.google.mediapipe.solutions.hands.HandLandmark;
 import com.google.mediapipe.solutions.hands.Hands;
 import com.google.mediapipe.solutions.hands.HandsResult;
 import java.util.List;
@@ -98,6 +99,21 @@ public class HandsResultImageView extends AppCompatImageView {
             isLeftHand = result.multiHandedness().get(i).getLabel().equals("Left");
         }
         return isLeftHand;
+    }
+
+    //result.multiHandLandmarks().get(0).getLandmarkList().get(HandLandmark.WRIST)
+
+    public boolean palmPresent(HandsResult result) {
+        boolean palm = false;
+        if(result.multiHandLandmarks().get(0).getLandmarkList().get(HandLandmark.WRIST).hasPresence() &&
+           result.multiHandLandmarks().get(0).getLandmarkList().get(HandLandmark.THUMB_CMC).hasPresence() &&
+           result.multiHandLandmarks().get(0).getLandmarkList().get(HandLandmark.INDEX_FINGER_MCP).hasPresence() &&
+           result.multiHandLandmarks().get(0).getLandmarkList().get(HandLandmark.MIDDLE_FINGER_MCP).hasPresence() &&
+           result.multiHandLandmarks().get(0).getLandmarkList().get(HandLandmark.RING_FINGER_MCP).hasPresence())
+        {
+            palm = true;
+        }
+        return palm;
     }
 
     private void drawLandmarksOnCanvas(
