@@ -135,22 +135,22 @@
 <!--        app:layout_constraintStart_toStartOf="parent"-->
 <!--        />-->
 
-    <FrameLayout
-        android:id="@+id/fl_preview_display"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="invisible"
-        app:layout_constraintTop_toBottomOf="@id/btn_capture_image"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-        <TextView
-            android:id="@+id/tv_no_view"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="Press camera button to start" />
-    </FrameLayout>
+<!--    <FrameLayout-->
+<!--        android:id="@+id/fl_preview_display"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="0dp"-->
+<!--        android:visibility="invisible"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/btn_capture_image"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent">-->
+<!--        <TextView-->
+<!--            android:id="@+id/tv_no_view"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:gravity="center"-->
+<!--            android:text="Press camera button to start" />-->
+<!--    </FrameLayout>-->
 
     <TextView
         android:id="@+id/textDir"

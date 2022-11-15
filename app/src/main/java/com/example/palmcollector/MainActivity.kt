@@ -6,6 +6,7 @@ import android.app.AlertDialog
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
@@ -13,6 +14,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.palmcollector.databinding.ActivityMainBinding
@@ -23,14 +25,14 @@ import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
     var addSubjectActivity: AddSubjectActivity? = null
-
-    private var listOfFiles = listFiles()
 
     //Models
     private lateinit var subject: Subject
@@ -42,6 +44,12 @@ class MainActivity : AppCompatActivity() {
 
     //Adapter
     private lateinit var subjectAdapter: SubjectAdapter
+
+    //Paths
+    val root = Environment.getExternalStorageDirectory().toString()
+    val myDir = File("$root/palm_collector_images")
+
+    private lateinit var listOfFiles : List<File>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,22 +64,32 @@ class MainActivity : AppCompatActivity() {
                 Manifest.permission.READ_EXTERNAL_STORAGE,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE
             ).withListener(object : MultiplePermissionsListener {
+                @RequiresApi(Build.VERSION_CODES.O)
                 override fun onPermissionsChecked(report: MultiplePermissionsReport) {
                     if(report!!.areAllPermissionsGranted()){
-                        val firstRun =
-                            getSharedPreferences("preferences", MODE_PRIVATE).getBoolean("firstrun", true)
-                        if (firstRun) {
-                            //set the firstrun to false so the next run can see it.
-                            getSharedPreferences("preferences", MODE_PRIVATE).edit().putBoolean("firstrun", false)
-                                .commit()
+//                        val firstRun =
+//                            getSharedPreferences("preferences", MODE_PRIVATE).getBoolean("firstrun", true)
+//                        if (firstRun) {
+//                            //set the firstrun to false so the next run can see it.
+//                            getSharedPreferences("preferences", MODE_PRIVATE).edit().putBoolean("firstrun", false)
+//                                .commit()
+//                            Toast.makeText(applicationContext, "Directory created \n /storage/emulated/0/palm_collector_images", Toast.LENGTH_LONG)
+//                                .show()
+//                            val root = Environment.getExternalStorageDirectory().toString()
+////                            val myDir = File("$root/palm_collector_images")
+////                            if(!myDir.exists()) {
+////                                myDir.mkdirs()
+////                            }
+//                            Files.createDirectories(Paths.get("$root/palm_collector_images"))
+                        if(!myDir.exists()){
+                            myDir.mkdirs()
                             Toast.makeText(applicationContext, "Directory created \n /storage/emulated/0/palm_collector_images", Toast.LENGTH_LONG)
                                 .show()
-                            val root = Environment.getExternalStorageDirectory().toString()
-                            val myDir = File("$root/palm_collector_images")
-                            if(!myDir.exists()) {
-                                myDir.mkdirs()
-                            }
+                        } else {
+                            listOfFiles = listFiles()
+                            //Toast.makeText(applicationContext, "Directory exists", Toast.LENGTH_LONG).show()
                         }
+//                        }
                         if(listOfFiles.isEmpty()){
                             rv_subject_list.visibility = View.INVISIBLE
                             sample_text.visibility = View.VISIBLE

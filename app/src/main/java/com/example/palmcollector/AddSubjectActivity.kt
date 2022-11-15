@@ -30,6 +30,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.datatransport.cct.internal.LogEvent
 import com.google.mediapipe.solutioncore.SolutionGlSurfaceView
 import com.google.mediapipe.solutions.hands.HandLandmark
 import com.google.mediapipe.solutions.hands.Hands
@@ -159,8 +160,9 @@ class AddSubjectActivity : AppCompatActivity() {
         findViewById<ImageButton>(R.id.btn_capture_image).setOnClickListener {
 
             if (checkCameraPermission() && checkStoragePermission()) {
-                performXImageCapture()
-                setResult(Activity.RESULT_OK)
+                performImageCapture()
+                val pickImageIntent = Intent(this, CameraActivity::class.java)
+
 //                    finish()
             } else {
 //                    Toast.makeText(this, "Please enable camera and storage permissions",Toast.LENGTH_SHORT).show()
@@ -201,116 +203,149 @@ class AddSubjectActivity : AppCompatActivity() {
 
     private fun initialize() {
 
-        imageView = HandsResultImageView(this)
+        //imageView = HandsResultImageView(this)
 //        cameraPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
 //            if (isGranted) {
 //                performImageCapture()
 //            }
 //        }
 
-        latestHandsResult?.let {
-            Toast.makeText(this,"Landmark Count of the image obtained from jni ${NativeInterface().display(it).landmarksize}", Toast.LENGTH_SHORT).show()
-        }
+//        latestHandsResult?.let {
+//            Toast.makeText(
+//                this,
+//                "Landmark Count of the image obtained from jni ${NativeInterface().display(it).landmarksize}",
+//                Toast.LENGTH_SHORT
+//            ).show()
+//        }
 
         // The Intent to capture image from camera.
         imageGetter = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
-            if (result.resultCode == RESULT_OK) {
-                var bitmap: Bitmap? = null
-                val tempUrl: Uri = getCaptureImageOutputUri()
-                Log.d(TAG, "The temporary url is : $tempUrl")
-                try {
-                    bitmap = downscaleBitmap(
-                        MediaStore.Images.Media.getBitmap(
-                            this.contentResolver, tempUrl
-                        )
-                    )
-                } catch (e: IOException) {
-                    Log.e(TAG, "Bitmap reading error:$e")
-                }
-                try {
-                    val imageData =
-                        this.contentResolver.openInputStream(tempUrl)
-                    if (bitmap != null && imageData != null) {
-                        bitmap = rotateBitmap(bitmap, imageData)
-                    }
-                } catch (e: IOException) {
-                    Log.e(TAG, "Bitmap rotation error:$e")
-                }
-                if (bitmap != null) {
-
-                    hands?.send(bitmap)
-                    hands = Hands(
-                        this,
-                        HandsOptions.builder()
-                            .setStaticImageMode(true)
-                            .setMaxNumHands(2)
-                            .setRunOnGpu(RUN_ON_GPU)
-                            .build()
-                    )
-                    hands?.setResultListener { handsResult: HandsResult? ->
-                        latestHandsResult = handsResult
-                    }
-//                        if(imageView?.calculatehandedness(handsResult) == true){
-//                            leftOrRight = "right"
-//                        } else {
-//                            leftOrRight = "left"
-//                        }
-//                        if(imageView?.frontOrBack(handsResult) == true){
-//                            palmOrBack = "palm"
-//                        } else {
-//                            palmOrBack = "back"
-//                        }
-//                    }
-                    if(latestHandsResult?.let { NativeInterface().display(it).landmarksize } == 21 && palmOrBack == "palm"){
-                        Toast.makeText(this,"Palm detected!", Toast.LENGTH_SHORT).show()
-
-                        if(leftOrRight == "left"){
-                            tempLeftList.add(bitmap)
-                        } else {
-                            tempRightList.add(bitmap)
-                        }
-
-                        val leftLayoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-                        leftPalmRecyclerView = findViewById(R.id.rv_left_palm_images)
-                        leftPalmRecyclerView.layoutManager = leftLayoutManager
-                        leftPalmRecyclerView.adapter = TempPalmAdapter(tempLeftList)
-
-                        val rightLayoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-                        rightPalmRecyclerView = findViewById(R.id.rv_right_palm_images)
-                        rightPalmRecyclerView.layoutManager = rightLayoutManager
-                        rightPalmRecyclerView.adapter = TempPalmAdapter(tempRightList)
-                    } else {
-                        Toast.makeText(this,"No palm detected. Try again.", Toast.LENGTH_SHORT).show()
-                    }
+            if (result.resultCode == 78) {
+                var intent = result.data
+                if (intent != null) {
+                    var image_path = intent.getStringExtra("bitmapURI_intent")
+                    var handedness = intent.getStringExtra("handedness_intent")
+                    var frontOrBack = intent.getStringExtra("frontOrBack_intent")
+                    var tempUrl: Uri = Uri.parse(image_path)
+                    Log.i("urireceived", "${tempUrl}")
+                    Log.i("handedness_rec", "$handedness")
+                    Log.i("frontOrBack_rec", "$frontOrBack")
                 }
             }
         }
+//                    var bitmap: Bitmap? = null
+//
+//                    Log.d(TAG, "The temporary url is : $tempUrl")
+//                    try {
+//                        bitmap = downscaleBitmap(
+//                            MediaStore.Images.Media.getBitmap(
+//                                this.contentResolver, tempUrl
+//                            )
+//                        )
+//                    } catch (e: IOException) {
+//                        Log.e(TAG, "Bitmap reading error:$e")
+//                    }
+//                    try {
+//                        val imageData =
+//                            this.contentResolver.openInputStream(tempUrl)
+//                        if (bitmap != null && imageData != null) {
+//                            bitmap = rotateBitmap(bitmap, imageData)
+//                            Log.i("rotationhappens", "$bitmap")
+//                        }
+//                    } catch (e: IOException) {
+//                        Log.e(TAG, "Bitmap rotation error:$e")
+//                    }
+//                    if (bitmap != null) {
+//                        hands = Hands(
+//                            this,
+//                            HandsOptions.builder()
+//                                .setStaticImageMode(true)
+//                                .setMaxNumHands(2)
+//                                .setRunOnGpu(RUN_ON_GPU)
+//                                .build()
+//                        )
+//                        hands?.send(bitmap)
+//                        hands?.setResultListener { handsResult: HandsResult? ->
+//                            latestHandsResult = handsResult
+//
+//                            if (imageView?.calculatehandedness(handsResult) == true) {
+//                                leftOrRight = "right"
+//                            } else {
+//                                leftOrRight = "left"
+//                            }
+//                            if (imageView?.frontOrBack(handsResult) == true) {
+//                                palmOrBack = "palm"
+//                            } else {
+//                                palmOrBack = "back"
+//                            }
+
+//                            if (latestHandsResult?.let { NativeInterface().display(it).landmarksize } == 21 && palmOrBack == "palm") {
+//                                Toast.makeText(this, "Palm detected!", Toast.LENGTH_SHORT).show()
+//
+////                                if (leftOrRight == "left") {
+////                                    tempLeftList.add(bitmap)
+////                                } else {
+////                                    tempRightList.add(bitmap)
+////                                }
+//
+//                                val leftLayoutManager =
+//                                    LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+//                                leftPalmRecyclerView = findViewById(R.id.rv_left_palm_images)
+//                                leftPalmRecyclerView.layoutManager = leftLayoutManager
+//                                leftPalmRecyclerView.adapter = TempPalmAdapter(tempLeftList)
+//
+//                                val rightLayoutManager =
+//                                    LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+//                                rightPalmRecyclerView = findViewById(R.id.rv_right_palm_images)
+//                                rightPalmRecyclerView.layoutManager = rightLayoutManager
+//                                rightPalmRecyclerView.adapter = TempPalmAdapter(tempRightList)
+//                            } else {
+//                                Toast.makeText(
+//                                    this,
+//                                    "No palm detected. Try again.",
+//                                    Toast.LENGTH_SHORT
+//                                )
+//                                    .show()
+//                            }
+//                        }
+//                    }
+//
+//                }
+//
+//            }
+//        }
     }
 
     private fun performImageCapture() {
-        hands?.close()
-        setupStaticImageModePipeline()
+        //hands?.close()
+        //setupStaticImageModePipeline()
 
         // Open camera to capture image
-        val outputFileUri: Uri = getCaptureImageOutputUri()
+//        val outputFileUri: Uri = getCaptureImageOutputUri()
 //        val pickImageIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
 //        pickImageIntent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri)
 //        imageGetter!!.launch(pickImageIntent)
+
         val pickImageIntent = Intent(this, CameraActivity::class.java)
-        pickImageIntent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri)
         imageGetter!!.launch(pickImageIntent)
+//        pickImageIntent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri)
+//        imageGetter!!.launch(pickImageIntent)
+
     }
 
-    private fun performXImageCapture(){
-        val intent = Intent(this, CameraActivity::class.java)
-        startActivity(intent)
-    }
+//    private fun performXImageCapture(){
+//        val intent = Intent(this, CameraActivity::class.java)
+//        startActivity(intent)
+//    }
 
     private fun getCaptureImageOutputUri(): Uri {
+        val root = Environment.getExternalStorageDirectory().absolutePath
+        val myDir = File("$root/saved_images")
         return FileProvider.getUriForFile(
             this@AddSubjectActivity,
             "com.example.palmcollector.provider",
-            File(externalCacheDir!!.path, "temp.png")
+            //File(externalCacheDir!!.path, "temp.png")
+            File(myDir, "temp_cam.png")
         )
     }
 
@@ -354,75 +389,46 @@ class AddSubjectActivity : AppCompatActivity() {
     /** Sets up core workflow for static image mode.  */
     private fun setupStaticImageModePipeline() {
         // Initializes a new MediaPipe Hands solution instance in the static image mode.
-        hands = Hands(
-            this,
-            HandsOptions.builder()
-                .setStaticImageMode(true)
-                .setMaxNumHands(2)
-                .setRunOnGpu(RUN_ON_GPU)
-                .build()
-        )
-
-        // Connects MediaPipe Hands solution to the user-defined HandsResultImageView.
-        hands?.setResultListener { handsResult: HandsResult? ->
-            latestHandsResult = handsResult
-            imageView?.setHandsResult(handsResult)
-            if(imageView?.calculatehandedness(handsResult) == true){
-                leftOrRight = "right"
-            }else{
-                leftOrRight = "left"
-            }
-            if(imageView?.frontOrBack(handsResult)==true){
-                palmOrBack = "palm"
-            }else{
-                palmOrBack = "back"
-            }
-//            Log.i("multihand" , (latestHandsResult?.multiHandLandmarks()?.get(0)?.landmarkList?.get(HandLandmark.WRIST).toString()))
-//            Log.i("multihand" , (latestHandsResult?.multiHandLandmarks()?.get(0)?.landmarkList?.contains(HandLandmark.PINKY_TIP).toString()))
-//            Log.i("multihand", latestHandsResult?.multiHandLandmarks()?.get(0)?.getLandmarkList()
-//                ?.get(HandLandmark.WRIST)
-//                ?.hasPresence().toString())
-
-            var area = 0.0
-            var a  = 0.0
-            var b = 0.0
-            var c = 0.0
-
-            var handPointList = latestHandsResult?.multiHandLandmarks()?.get(0)?.landmarkList
-
-            a = sqrt(Math.pow(((handPointList!!.get(0).x - handPointList.get(4*0+1).x).toDouble()),
-                2.0
-            ))
-
-            Log.i("calcvalue", "$a")
-
-
-
-//            for(k in 0..3){
-//                var handPointList = latestHandsResult?.multiHandLandmarks()?.get(0)?.landmarkList
+//        hands = Hands(
+//            this,
+//            HandsOptions.builder()
+//                .setStaticImageMode(true)
+//                .setMaxNumHands(2)
+//                .setRunOnGpu(RUN_ON_GPU)
+//                .build()
+//        )
 //
-//                a = sqrt(Math.pow(((handPointList!!.get(0).x - handPointList.get(4*k+1).x).toDouble()),
-//                    2.0
-//                ))
+//        // Connects MediaPipe Hands solution to the user-defined HandsResultImageView.
+//        hands?.setResultListener { handsResult: HandsResult? ->
+//            latestHandsResult = handsResult
+//            imageView?.setHandsResult(handsResult)
+//            if(imageView?.calculatehandedness(handsResult) == true){
+//                leftOrRight = "right"
+//            }else{
+//                leftOrRight = "left"
 //            }
-
-            runOnUiThread { imageView?.update() }
-
-            Log.i("hand value", "$leftOrRight")
-            Log.i("palmness", "$palmOrBack")
-        }
-        hands?.setErrorListener { message: String, e: RuntimeException? ->
-            Log.e(
-                TAG, "MediaPipe Hands error:$message"
-            )
-        }
-
+//            if(imageView?.frontOrBack(handsResult)==true){
+//                palmOrBack = "palm"
+//            }else{
+//                palmOrBack = "back"
+//            }
+//
+//            runOnUiThread { imageView?.update() }
+//
+//            Log.i("hand value", "$leftOrRight")
+//            Log.i("palmness", "$palmOrBack")
+//        }
+//        hands?.setErrorListener { message: String, e: RuntimeException? ->
+//            Log.e(
+//                TAG, "MediaPipe Hands error:$message"
+//            )
+//        }
 //         Updates the preview layout
-        val frameLayout = findViewById<FrameLayout>(R.id.fl_preview_display)
-        frameLayout.removeAllViewsInLayout()
-        imageView?.setImageDrawable(null)
-        frameLayout.addView(imageView)
-        imageView?.visibility = View.VISIBLE
+//        val frameLayout = findViewById<FrameLayout>(R.id.fl_preview_display)
+//        frameLayout.removeAllViewsInLayout()
+//        imageView?.setImageDrawable(null)
+//        frameLayout.addView(imageView)
+//        imageView?.visibility = View.VISIBLE
     }
 
     private fun downscaleBitmap(originalBitmap: Bitmap): Bitmap? {
@@ -463,4 +469,11 @@ class AddSubjectActivity : AppCompatActivity() {
     private fun checkStoragePermission(): Boolean {
         return ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
     }
+
+    companion object {
+        var BITMAP_REQUEST_CODE = 2
+    }
+
+
+
 }
