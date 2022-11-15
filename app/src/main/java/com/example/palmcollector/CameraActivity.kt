@@ -170,11 +170,25 @@ class CameraActivity : AppCompatActivity(){
 
                     //runOnUiThread {
                     if(area >= 1){
+                        Log.i("beluga_isPalm", "${imageView?.frontOrBack(handsResult)}")
+                        Log.i("walter_isLeft", "${imageView?.calculatehandedness(handsResult)}")
                         runOnUiThread{guide.text = "Hold still"}
-                        stopCurrentPipeline()
-                        var bitmap = imageAnalysis(handsResult.inputBitmap())
+                        //stopCurrentPipeline()
+                        //imageanalysis
+                        var bitmap =
+                        if (imageView?.calculatehandedness(handsResult) == true) {
+                            leftOrRight = "right"
+                        } else {
+                            leftOrRight = "left"
+                        }
+                        if (imageView?.frontOrBack(handsResult) == true) {
+                            palmOrBack = "palm"
+                        } else {
+                            palmOrBack = "back"
+                        }
+                        //imageanalysis
                         Log.i("inputBitmap", "$bitmap")
-                        var uri = SaveImage(bitmap!!)
+                        var uri = SaveImage(handsResult.inputBitmap())
 //                            var uri = getImageUri(this, bitmap)
                         var i = Intent(this, AddSubjectActivity::class.java)
                         i.putExtra("bitmapURI_intent", uri.toString())
@@ -211,7 +225,7 @@ class CameraActivity : AppCompatActivity(){
     // add sub code
 
     private fun imageAnalysis(inputBitmap: Bitmap) : Bitmap? {
-        imageView = HandsResultImageView(this)
+
 
         var bitmap: Bitmap? = null
         var uriTemp = getImageUri(this, inputBitmap)
@@ -251,16 +265,7 @@ class CameraActivity : AppCompatActivity(){
                     imageView?.setImageDrawable(null)
                     imageView?.visibility = View.VISIBLE
                     Log.i("henlo", "block")
-                    if (imageView?.calculatehandedness(handsResult) == true) {
-                        leftOrRight = "right"
-                    } else {
-                        leftOrRight = "left"
-                    }
-                    if (imageView?.frontOrBack(handsResult) == true) {
-                        palmOrBack = "palm"
-                    } else {
-                        palmOrBack = "back"
-                    }
+                    //**
                     flag = true
 
                     runOnUiThread { imageView?.update() }
