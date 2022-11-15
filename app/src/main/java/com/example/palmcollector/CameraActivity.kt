@@ -169,13 +169,13 @@ class CameraActivity : AppCompatActivity(){
                     Log.i("areavalue", "$area")
 
                     //runOnUiThread {
-                    if(area >= 1){
+                    if(area in 1.0..1.3){
                         Log.i("beluga_isPalm", "${imageView?.frontOrBack(handsResult)}")
                         Log.i("walter_isLeft", "${imageView?.calculatehandedness(handsResult)}")
                         runOnUiThread{guide.text = "Hold still"}
                         //stopCurrentPipeline()
                         //imageanalysis
-                        var bitmap =
+                        //var bitmap =
                         if (imageView?.calculatehandedness(handsResult) == true) {
                             leftOrRight = "right"
                         } else {
@@ -187,7 +187,7 @@ class CameraActivity : AppCompatActivity(){
                             palmOrBack = "back"
                         }
                         //imageanalysis
-                        Log.i("inputBitmap", "$bitmap")
+                        //Log.i("inputBitmap", "$bitmap")
                         var uri = SaveImage(handsResult.inputBitmap())
 //                            var uri = getImageUri(this, bitmap)
                         var i = Intent(this, AddSubjectActivity::class.java)
@@ -198,10 +198,11 @@ class CameraActivity : AppCompatActivity(){
                         setResult(78, i)
                         finish()
 //                            this.startActivity(i)
-                    } else if (area > 0) {
+                    } else if (area in 0.0..1.0) {
                         runOnUiThread{guide.text = "Bring palm closer"}
+                    } else if (area > 1.3){
+                        runOnUiThread{guide.text = "Place palm further"}
                     }
-                    //}
                 }
             })
 
@@ -224,64 +225,64 @@ class CameraActivity : AppCompatActivity(){
 
     // add sub code
 
-    private fun imageAnalysis(inputBitmap: Bitmap) : Bitmap? {
-
-
-        var bitmap: Bitmap? = null
-        var uriTemp = getImageUri(this, inputBitmap)
-        try {
-            bitmap = downscaleBitmap(
-                MediaStore.Images.Media.getBitmap(
-                    this.contentResolver, uriTemp
-                )
-            )
-        } catch (e: IOException) {
-            Log.e(TAG, "Bitmap reading error:$e")
-        }
-        try {
-            val imageData =
-                this.contentResolver.openInputStream(uriTemp!!)
-            if (bitmap != null && imageData != null) {
-                bitmap = rotateBitmap(bitmap, imageData)
-                Log.i("rotationhappens", "$bitmap")
-            }
-        } catch (e: IOException) {
-            Log.e(TAG, "Bitmap rotation error:$e")
-        }
-        if (bitmap != null) {
-            hands?.send(bitmap)
-//            hands = Hands(
-//                this,
-//                HandsOptions.builder()
-//                    .setStaticImageMode(true)
-//                    .setMaxNumHands(2)
-//                    .setRunOnGpu(RUN_ON_GPU)
-//                    .build()
+//    private fun imageAnalysis(inputBitmap: Bitmap) : Bitmap? {
+//
+//
+//        var bitmap: Bitmap? = null
+//        var uriTemp = getImageUri(this, inputBitmap)
+//        try {
+//            bitmap = downscaleBitmap(
+//                MediaStore.Images.Media.getBitmap(
+//                    this.contentResolver, uriTemp
+//                )
 //            )
-            hands?.setResultListener { handsResult: HandsResult? ->
-                if(flag == false){
-                    //latestHandsResult = handsResult
-                    imageView?.setHandsResult(handsResult)
-                    imageView?.setImageDrawable(null)
-                    imageView?.visibility = View.VISIBLE
-                    Log.i("henlo", "block")
-                    //**
-                    flag = true
-
-                    runOnUiThread { imageView?.update() }
-
-                    Log.i("hand value", "$leftOrRight")
-                    Log.i("palmness", "$palmOrBack")
-                }
-                hands?.setErrorListener { message: String, e: RuntimeException? ->
-                    Log.e(
-                        TAG, "MediaPipe Hands error:$message"
-                    )
-                }
-                }
-                }
-        return bitmap
-        }
+//        } catch (e: IOException) {
+//            Log.e(TAG, "Bitmap reading error:$e")
+//        }
+//        try {
+//            val imageData =
+//                this.contentResolver.openInputStream(uriTemp!!)
+//            if (bitmap != null && imageData != null) {
+//                bitmap = rotateBitmap(bitmap, imageData)
+//                Log.i("rotationhappens", "$bitmap")
+//            }
+//        } catch (e: IOException) {
+//            Log.e(TAG, "Bitmap rotation error:$e")
+//        }
+//        if (bitmap != null) {
+//            hands?.send(bitmap)
+////            hands = Hands(
+////                this,
+////                HandsOptions.builder()
+////                    .setStaticImageMode(true)
+////                    .setMaxNumHands(2)
+////                    .setRunOnGpu(RUN_ON_GPU)
+////                    .build()
+////            )
+//            hands?.setResultListener { handsResult: HandsResult? ->
+//                if(flag == false){
+//                    //latestHandsResult = handsResult
+//                    imageView?.setHandsResult(handsResult)
+//                    imageView?.setImageDrawable(null)
+//                    imageView?.visibility = View.VISIBLE
+//                    Log.i("henlo", "block")
+//                    //**
+//                    flag = true
+//
+//                    runOnUiThread { imageView?.update() }
+//
+//                    Log.i("hand value", "$leftOrRight")
+//                    Log.i("palmness", "$palmOrBack")
+//                }
+//                hands?.setErrorListener { message: String, e: RuntimeException? ->
+//                    Log.e(
+//                        TAG, "MediaPipe Hands error:$message"
+//                    )
+//                }
+//                }
+//                }
+//        return bitmap
+//        }
 
 
     private fun rotateBitmap(inputBitmap: Bitmap, imageData: InputStream): Bitmap? {
@@ -409,13 +410,8 @@ class CameraActivity : AppCompatActivity(){
     }
 
     private fun SaveImage(finalBitmap: Bitmap) : Uri {
-        val root = Environment.getExternalStorageDirectory().absolutePath
-        val myDir = File("$root/saved_images")
-        if(!myDir.exists()){
-            myDir.mkdirs()
-        }
         val fname = "temp_cam.jpg"
-        val file = File(myDir, fname)
+        val file = File(externalCacheDir!!.path, fname)
         if (file.exists()) file.delete()
         try {
             val out = FileOutputStream(file)
@@ -430,11 +426,5 @@ class CameraActivity : AppCompatActivity(){
         Log.i("urichech", "$uridaw")
 
         return uridaw
-//        return FileProvider.getUriForFile(
-//            this@CameraActivity,
-//            "com.example.palmcollector.provider",
-//            File(myDir, "temp_cam.jpg")
-//        )
     }
-    //Hands code
 }

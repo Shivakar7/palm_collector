@@ -16,10 +16,8 @@ import android.provider.MediaStore
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import android.view.WindowManager
 import android.widget.EditText
-import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
@@ -30,17 +28,12 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.datatransport.cct.internal.LogEvent
-import com.google.mediapipe.solutioncore.SolutionGlSurfaceView
-import com.google.mediapipe.solutions.hands.HandLandmark
 import com.google.mediapipe.solutions.hands.Hands
-import com.google.mediapipe.solutions.hands.HandsOptions
 import com.google.mediapipe.solutions.hands.HandsResult
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
-import kotlin.math.sqrt
 
 class AddSubjectActivity : AppCompatActivity() {
 
@@ -64,7 +57,7 @@ class AddSubjectActivity : AppCompatActivity() {
     private lateinit var leftPalmRecyclerView: RecyclerView
     private lateinit var rightPalmRecyclerView: RecyclerView
 
-    private lateinit var leftOrRight: String
+    //private var leftOrRight: String
 
     private var tempLeftList = mutableListOf<Bitmap>()
     private var tempRightList = mutableListOf<Bitmap>()
@@ -76,7 +69,15 @@ class AddSubjectActivity : AppCompatActivity() {
 
     private val listOfFiles = listFiles()
 
-    private var palmOrBack = "palm"
+    //private var palmOrBack = "palm"
+
+    // Intent data
+
+
+    private var leftOrRight : String? = null
+    private var palmOrBack : String? = null
+
+    private var theBitmap : Bitmap? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -203,36 +204,43 @@ class AddSubjectActivity : AppCompatActivity() {
 
     private fun initialize() {
 
-        //imageView = HandsResultImageView(this)
-//        cameraPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-//            if (isGranted) {
-//                performImageCapture()
-//            }
-//        }
-
-//        latestHandsResult?.let {
-//            Toast.makeText(
-//                this,
-//                "Landmark Count of the image obtained from jni ${NativeInterface().display(it).landmarksize}",
-//                Toast.LENGTH_SHORT
-//            ).show()
-//        }
-
         // The Intent to capture image from camera.
-        imageGetter = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
-            if (result.resultCode == 78) {
-                var intent = result.data
-                if (intent != null) {
-                    var image_path = intent.getStringExtra("bitmapURI_intent")
-                    var handedness = intent.getStringExtra("handedness_intent")
-                    var frontOrBack = intent.getStringExtra("frontOrBack_intent")
-                    var tempUrl: Uri = Uri.parse(image_path)
-                    Log.i("urireceived", "${tempUrl}")
-                    Log.i("handedness_rec", "$handedness")
-                    Log.i("frontOrBack_rec", "$frontOrBack")
+        imageGetter =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+                if (result.resultCode == 78) {
+                    var intent = result.data
+                    if (intent != null) {
+                        var image_path = intent.getStringExtra("bitmapURI_intent")
+                        leftOrRight = intent.getStringExtra("handedness_intent")
+                        palmOrBack = intent.getStringExtra("frontOrBack_intent")
+                        var tempUrl: Uri = Uri.parse(image_path)
+                        theBitmap = MediaStore.Images.Media.getBitmap(this.contentResolver, tempUrl)
+                        Log.i("urireceived", "${tempUrl}")
+                        Log.i("handedness_rec", "$leftOrRight")
+                        Log.i("frontOrBack_rec", "$palmOrBack")
+                        if (leftOrRight == "left") {
+                            tempLeftList.add(theBitmap!!)
+                        } else {
+                            tempRightList.add(theBitmap!!)
+                        }
+                        Log.i("leftpalmsu", tempLeftList.toString())
+                        Log.i("rightpalmsu", tempRightList.toString())
+
+                        val leftLayoutManager =
+                            LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+                        leftPalmRecyclerView = findViewById(R.id.rv_left_palm_images)
+                        leftPalmRecyclerView.layoutManager = leftLayoutManager
+                        leftPalmRecyclerView.adapter = TempPalmAdapter(tempLeftList)
+
+                        val rightLayoutManager =
+                            LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+                        rightPalmRecyclerView = findViewById(R.id.rv_right_palm_images)
+                        rightPalmRecyclerView.layoutManager = rightLayoutManager
+                        rightPalmRecyclerView.adapter = TempPalmAdapter(tempRightList)
+                    }
                 }
             }
-        }
+    }
 //                    var bitmap: Bitmap? = null
 //
 //                    Log.d(TAG, "The temporary url is : $tempUrl")
@@ -314,7 +322,7 @@ class AddSubjectActivity : AppCompatActivity() {
 //
 //            }
 //        }
-    }
+
 
     private fun performImageCapture() {
         //hands?.close()
