@@ -146,8 +146,14 @@ class CameraActivity : AppCompatActivity(){
                 logWristLandmark(handsResult!!,  /*showPixelValues=*/false)
                 glSurfaceView!!.setRenderData(handsResult)
                 glSurfaceView!!.requestRender()
+                //
+                //
+                imageView = HandsResultImageView(this)
+                logWristLandmark(handsResult!!,  /*showPixelValues=*/true)
+                imageView?.setHandsResult(handsResult)
+                runOnUiThread { imageView?.update() }
 
-                if (handsResult?.let { NativeInterface().display(it).landmarksize } == 21){
+                if (handsResult?.let { NativeInterface().display(it).landmarksize } == 21 && imageView!!.frontOrBack(handsResult) ){
                     var area = 0.0
 
                     val handPointList = handsResult.multiHandLandmarks()?.get(0)?.landmarkList
@@ -165,6 +171,7 @@ class CameraActivity : AppCompatActivity(){
                     //runOnUiThread {
                     if(area >= 1){
                         runOnUiThread{guide.text = "Hold still"}
+                        stopCurrentPipeline()
                         var bitmap = imageAnalysis(handsResult.inputBitmap())
                         Log.i("inputBitmap", "$bitmap")
                         var uri = SaveImage(bitmap!!)
@@ -267,8 +274,6 @@ class CameraActivity : AppCompatActivity(){
                     )
                 }
                 }
-
-
                 }
         return bitmap
         }
@@ -392,7 +397,7 @@ class CameraActivity : AppCompatActivity(){
         val path = MediaStore.Images.Media.insertImage(
             inContext.getContentResolver(),
             inImage,
-            "Title",
+            "Titletata",
             null
         )
         return Uri.parse(path)
