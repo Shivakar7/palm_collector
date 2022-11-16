@@ -5,6 +5,8 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -191,9 +193,18 @@ class MainActivity : AppCompatActivity() {
             return arrayListOf()
         }
         val files=arrayListOf<File>(*directory.listFiles())
+
         files.sortWith { text1, text2 ->
             text1.compareTo(text2)
         }
+
+//        val myBitmaps : ArrayList<Bitmap> = arrayListOf()
+//
+//        for(i in files){
+//            var bitmap = BitmapFactory.decodeFile(i.toString())
+//            myBitmaps.add(bitmap)
+//        }
+
         Log.d("Files","Size:"+files.size)
         return files
     }

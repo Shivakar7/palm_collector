@@ -32,6 +32,7 @@ class PalmAdapter(
 
         if (holder is PalmAdapter.PalmViewHolder) {
             val myBitmap = BitmapFactory.decodeFile(model.Image.getAbsolutePath())
+            //val myBitmap = model.Image
             holder.itemView.ivPalmImage.setImageBitmap(myBitmap)
 
             holder.itemView.setOnClickListener {

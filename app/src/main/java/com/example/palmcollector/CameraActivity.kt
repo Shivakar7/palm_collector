@@ -1,6 +1,5 @@
 package com.example.palmcollector
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -9,7 +8,6 @@ import android.graphics.Matrix
 import android.media.ExifInterface
 import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.view.View
@@ -17,7 +15,6 @@ import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.FileProvider
 import com.google.mediapipe.components.TextureFrameConsumer
 import com.google.mediapipe.framework.TextureFrame
 import com.google.mediapipe.solutioncore.CameraInput
@@ -30,7 +27,6 @@ import com.google.mediapipe.solutions.hands.HandsOptions
 import com.google.mediapipe.solutions.hands.HandsResult
 import java.io.*
 import kotlin.math.sqrt
-
 
 class CameraActivity : AppCompatActivity(){
 
@@ -131,7 +127,8 @@ class CameraActivity : AppCompatActivity(){
                 )
             })
         }
-        val guide = findViewById<TextView>(R.id.tv_guide)
+
+        val guide = findViewById<TextView>(R.id.camera_capture_button)
 
 //         Initializes a new Gl surface view with a user-defined HandsResultGlRenderer.
         glSurfaceView = SolutionGlSurfaceView<HandsResult>(
@@ -175,7 +172,7 @@ class CameraActivity : AppCompatActivity(){
                         runOnUiThread{guide.text = "Hold still"}
                         //stopCurrentPipeline()
                         //imageanalysis
-                        //var bitmap =
+                        var bitmap = handsResult.inputBitmap()
                         if (imageView?.calculatehandedness(handsResult) == true) {
                             leftOrRight = "right"
                         } else {
@@ -188,7 +185,25 @@ class CameraActivity : AppCompatActivity(){
                         }
                         //imageanalysis
                         //Log.i("inputBitmap", "$bitmap")
-                        var uri = SaveImage(handsResult.inputBitmap())
+                        val matrix = Matrix()
+
+                        matrix.postRotate(180f)
+                        val cx = bitmap.width / 2f
+                        val cy = bitmap.height / 2f
+
+                        val scaledBitmap = Bitmap.createScaledBitmap(bitmap, bitmap.width, bitmap.height, true)
+                        val rotatedBitmap = Bitmap.createBitmap(
+                            scaledBitmap,
+                            0,
+                            0,
+                            scaledBitmap.width,
+                            scaledBitmap.height,
+                            matrix,
+                            true
+                        )
+                        val flippedBitmap = rotatedBitmap.flip(-1f, 1f, cx, cy)
+
+                        var uri = SaveImage(flippedBitmap)
 //                            var uri = getImageUri(this, bitmap)
                         var i = Intent(this, AddSubjectActivity::class.java)
                         i.putExtra("bitmapURI_intent", uri.toString())
@@ -285,21 +300,26 @@ class CameraActivity : AppCompatActivity(){
 //        }
 
 
-    private fun rotateBitmap(inputBitmap: Bitmap, imageData: InputStream): Bitmap? {
-        val orientation = ExifInterface(imageData).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED)
-        if (orientation == ExifInterface.ORIENTATION_NORMAL) {
-            return inputBitmap
-        }
-        val matrix = Matrix()
-        when (orientation) {
-            ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
-            ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
-            ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
-            else -> matrix.postRotate(0f)
-        }
-        return Bitmap.createBitmap(
-            inputBitmap, 0, 0, inputBitmap.width, inputBitmap.height, matrix, true
-        )
+//    private fun rotateBitmap(inputBitmap: Bitmap, imageData: InputStream): Bitmap? {
+//        val orientation = ExifInterface(imageData).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED)
+//        if (orientation == ExifInterface.ORIENTATION_NORMAL) {
+//            return inputBitmap
+//        }
+//        val matrix = Matrix()
+//        when (orientation) {
+//            ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
+//            ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
+//            ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
+//            else -> matrix.postRotate(0f)
+//        }
+//        return Bitmap.createBitmap(
+//            inputBitmap, 0, 0, inputBitmap.width, inputBitmap.height, matrix, true
+//        )
+//    }
+
+    private fun Bitmap.flip(x: Float, y: Float, cx: Float, cy: Float): Bitmap {
+        val matrix = Matrix().apply { postScale(x, y, cx, cy) }
+        return Bitmap.createBitmap(this, 0, 0, width, height, matrix, true)
     }
 
     private fun downscaleBitmap(originalBitmap: Bitmap): Bitmap? {
@@ -415,7 +435,7 @@ class CameraActivity : AppCompatActivity(){
         if (file.exists()) file.delete()
         try {
             val out = FileOutputStream(file)
-            finalBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+            finalBitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
             out.flush()
             out.close()
         } catch (e: Exception) {

@@ -452,23 +452,23 @@ class AddSubjectActivity : AppCompatActivity() {
         return Bitmap.createScaledBitmap(originalBitmap, width, height, false)
     }
 
-    @Throws(IOException::class)
-    private fun rotateBitmap(inputBitmap: Bitmap, imageData: InputStream): Bitmap? {
-        val orientation = ExifInterface(imageData).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
-        if (orientation == ExifInterface.ORIENTATION_NORMAL) {
-            return inputBitmap
-        }
-        val matrix = Matrix()
-        when (orientation) {
-            ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
-            ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
-            ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
-            else -> matrix.postRotate(0f)
-        }
-        return Bitmap.createBitmap(
-            inputBitmap, 0, 0, inputBitmap.width, inputBitmap.height, matrix, true
-        )
-    }
+//    @Throws(IOException::class)
+//    private fun rotateBitmap(inputBitmap: Bitmap, imageData: InputStream): Bitmap? {
+//        val orientation = ExifInterface(imageData).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+//        if (orientation == ExifInterface.ORIENTATION_NORMAL) {
+//            return inputBitmap
+//        }
+//        val matrix = Matrix()
+//        when (orientation) {
+//            ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
+//            ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
+//            ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
+//            else -> matrix.postRotate(0f)
+//        }
+//        return Bitmap.createBitmap(
+//            inputBitmap, 0, 0, inputBitmap.width, inputBitmap.height, matrix, true
+//        )
+//    }
 
     private fun checkCameraPermission(): Boolean {
         return ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED

@@ -9,7 +9,6 @@ import kotlinx.android.synthetic.main.item_palm.view.*
 
 class TempPalmAdapter(
     var palmList : MutableList<Bitmap>
-
 ) : RecyclerView.Adapter<TempPalmAdapter.TempPalmViewHolder>() {
 
     inner class TempPalmViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
