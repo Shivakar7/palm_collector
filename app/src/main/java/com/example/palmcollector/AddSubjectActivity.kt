@@ -7,12 +7,10 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.Matrix
-import android.media.ExifInterface
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
-import android.provider.MediaStore
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -31,9 +29,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.mediapipe.solutions.hands.Hands
 import com.google.mediapipe.solutions.hands.HandsResult
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
-import java.io.InputStream
+import java.nio.channels.FileChannel
 
 class AddSubjectActivity : AppCompatActivity() {
 
@@ -59,8 +58,8 @@ class AddSubjectActivity : AppCompatActivity() {
 
     //private var leftOrRight: String
 
-    private var tempLeftList = mutableListOf<Bitmap>()
-    private var tempRightList = mutableListOf<Bitmap>()
+    private var tempLeftList = mutableListOf<SubjectMetaData>()
+    private var tempRightList = mutableListOf<SubjectMetaData>()
 
     //    Models
     private var subject: Subject? = null
@@ -73,11 +72,17 @@ class AddSubjectActivity : AppCompatActivity() {
 
     // Intent data
 
+    private var existSubLeftSize = 0
+    private var existSubRightSize = 0
+
 
     private var leftOrRight : String? = null
     private var palmOrBack : String? = null
 
     private var theBitmap : Bitmap? = null
+    //private var theBitmapfile : File? = null
+    //private var bitmapFiles = mutableListOf<File>()
+    private var kilo = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -90,9 +95,20 @@ class AddSubjectActivity : AppCompatActivity() {
 
         initialize()
         initClickListener()
+        existingSubjectAdd()
+
+
+    }
+
+    private fun existingSubjectAdd(){
+        // capture code
+
 
         if(intent.hasExtra(MainActivity.SUBJECT_DETAILS)){
             subject = intent.getSerializableExtra(MainActivity.SUBJECT_DETAILS) as Subject
+//            findViewById<ImageButton>(R.id.btn_capture_image).setOnClickListener {
+//                performImageCapture()
+//            }
         }
 
         if(subject != null){
@@ -100,6 +116,9 @@ class AddSubjectActivity : AppCompatActivity() {
             editText.setText(subject!!.subjectID)
             editText.isEnabled = false
             this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
+
+            existSubLeftSize = subject!!.leftList.size
+            existSubRightSize = subject!!.rightList.size
 
             val leftLayoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
             leftPalmRecyclerView = findViewById(R.id.rv_left_palm_images)
@@ -111,6 +130,7 @@ class AddSubjectActivity : AppCompatActivity() {
             rightPalmRecyclerView.layoutManager = rightLayoutManager
             rightPalmRecyclerView.adapter = PalmAdapter(subject!!.rightList)
         }
+
     }
 
 
@@ -123,20 +143,50 @@ class AddSubjectActivity : AppCompatActivity() {
         when (item.itemId) {
             R.id.miSave -> {
 //              Code to save
-                if(tempLeftList.size>0 || tempRightList.size>0 ){
+                if(subject!=null){
+                    //if((subject!!.leftList.size>0) || (subject!!.rightList.size>0)){
+                    if((subject!!.leftList.size) == (existSubLeftSize) && (subject!!.rightList.size) == (existSubRightSize)) {
+                        Toast.makeText(this,"Please click images to save", Toast.LENGTH_SHORT).show()
+                    } else {
+                        if((subject!!.leftList.size != existSubLeftSize)){
+                            for(i in existSubLeftSize..subject!!.leftList.size-1){
+                                val bitmapImg = subject!!.leftList[i]
+                                copy(bitmapImg, "left")
+                            }
+                        }
+                        if((subject!!.rightList.size) != existSubRightSize ){
+                            for(i in existSubRightSize..subject!!.rightList.size-1){
+                                val bitmapImg = subject!!.rightList[i]
+                                copy(bitmapImg, "right")
+                            }
+                        }
+                        setResult(Activity.RESULT_OK)
+                        finish()
+                        Log.i("onclicklistener", "workingu")
+                        return true
+                    }
+                    } else if (tempLeftList.size>0 || tempRightList.size>0 ){
                     Log.i("kikiki", "workingu")
                     if(tempLeftList.size>0){
                         Log.i("kikiki_leftsize${tempRightList.size}", "workingu")
                         for(i in 0..tempLeftList.size-1){
                             val bitmapImg = tempLeftList[i]
-                            saveImageToDirectory(bitmapImg, "left")
+                            copy(bitmapImg, "left")
                         }
                     }
                     if(tempRightList.size>0){
                         Log.i("kikiki_rightsize${tempRightList.size}", "workingu")
                         for(i in 0..tempRightList.size-1){
                             val bitmapImg = tempRightList[i]
-                            saveImageToDirectory(bitmapImg, "right")
+                            copy(bitmapImg, "right")
+                            Log.e("fileu", "${bitmapImg.Image}")
+                            Log.e("filefile", "${bitmapImg.Image.absoluteFile}")
+                            Log.e("fileexists", "${bitmapImg.Image.exists()}")
+                            Log.e("filefileexists", "${bitmapImg.Image.absoluteFile.exists()}")
+                            Log.e("filedirectory", "${bitmapImg.Image.isDirectory()}")
+                            Log.e("filefiledirectory", "${bitmapImg.Image.absoluteFile.isDirectory()}")
+                            Log.e("filecanread", "${bitmapImg.Image.canRead()}")
+                            Log.e("filefilecanread", "${bitmapImg.Image.absoluteFile.canRead()}")
                         }
                     }
                     setResult(Activity.RESULT_OK)
@@ -146,12 +196,15 @@ class AddSubjectActivity : AppCompatActivity() {
                 } else {
                     Toast.makeText(this,"Please click images to save", Toast.LENGTH_SHORT).show()
                 }
+                }
             }
-        }
         return false
-    }
+        }
+
+
 
     override fun onSupportNavigateUp(): Boolean {
+        recreate()
         finish()
         return true
     }
@@ -214,14 +267,25 @@ class AddSubjectActivity : AppCompatActivity() {
                         leftOrRight = intent.getStringExtra("handedness_intent")
                         palmOrBack = intent.getStringExtra("frontOrBack_intent")
                         var tempUrl: Uri = Uri.parse(image_path)
-                        theBitmap = MediaStore.Images.Media.getBitmap(this.contentResolver, tempUrl)
+                        //theBitmap = MediaStore.Images.Media.getBitmap(this.contentResolver, tempUrl)
+                        var theBitmapfile = File(tempUrl.encodedPath.toString())
+                        //bitmapFiles.add(theBitmapfile)
                         Log.i("urireceived", "${tempUrl}")
                         Log.i("handedness_rec", "$leftOrRight")
                         Log.i("frontOrBack_rec", "$palmOrBack")
+
                         if (leftOrRight == "left") {
-                            tempLeftList.add(theBitmap!!)
+                            if(subject!=null){
+                                subject!!.leftList.add(SubjectMetaData(theBitmapfile!!))
+                            } else {
+                                tempLeftList.add(SubjectMetaData(theBitmapfile!!))
+                            }
                         } else {
-                            tempRightList.add(theBitmap!!)
+                            if(subject!=null){
+                                subject!!.rightList.add(SubjectMetaData(theBitmapfile!!))
+                            } else {
+                                tempRightList.add(SubjectMetaData(theBitmapfile!!))
+                            }
                         }
                         Log.i("leftpalmsu", tempLeftList.toString())
                         Log.i("rightpalmsu", tempRightList.toString())
@@ -230,13 +294,21 @@ class AddSubjectActivity : AppCompatActivity() {
                             LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
                         leftPalmRecyclerView = findViewById(R.id.rv_left_palm_images)
                         leftPalmRecyclerView.layoutManager = leftLayoutManager
-                        leftPalmRecyclerView.adapter = TempPalmAdapter(tempLeftList)
+                        if(subject!=null){
+                            leftPalmRecyclerView.adapter = PalmAdapter(subject!!.leftList)
+                        } else {
+                            leftPalmRecyclerView.adapter = PalmAdapter(tempLeftList)
+                        }
 
                         val rightLayoutManager =
                             LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
                         rightPalmRecyclerView = findViewById(R.id.rv_right_palm_images)
                         rightPalmRecyclerView.layoutManager = rightLayoutManager
-                        rightPalmRecyclerView.adapter = TempPalmAdapter(tempRightList)
+                        if(subject!=null){
+                            rightPalmRecyclerView.adapter = PalmAdapter(subject!!.rightList)
+                        } else {
+                            rightPalmRecyclerView.adapter = PalmAdapter(tempRightList)
+                        }
                     }
                 }
             }
@@ -357,7 +429,7 @@ class AddSubjectActivity : AppCompatActivity() {
         )
     }
 
-    private fun saveImageToDirectory(finalBitmap: Bitmap, handedness: String) {
+    private fun saveImageToDirectory(finalBitmap: SubjectMetaData, handedness: String) {
         var subName = findViewById<EditText>(R.id.etSubjectName).text
         val root = Environment.getExternalStorageDirectory().toString()
         val myDir = File("$root/palm_collector_images")
@@ -369,14 +441,66 @@ class AddSubjectActivity : AppCompatActivity() {
         val file = File(myDir, fname)
         if (file.exists()) file.delete()
         try {
+//            finalBitmap.copyTo(file)
             val out = FileOutputStream(file)
-            finalBitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+            val bitmapu = BitmapFactory.decodeFile(finalBitmap.Image.absolutePath)
+            Log.i("abspathu", finalBitmap.Image.absolutePath)
+            bitmapu.compress(Bitmap.CompressFormat.PNG, 100, out)
             Log.i("output strean block", "executed")
             out.flush()
             out.close()
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+//    @Throws(IOException::class)
+//    fun copy(finalBitmap: SubjectMetaData, handedness: String) {
+//        //
+//        var subName = findViewById<EditText>(R.id.etSubjectName).text
+//        val root = Environment.getExternalStorageDirectory().toString()
+//        val myDir = File("$root/palm_collector_images")
+//        if(!myDir.exists()){
+//            myDir.mkdirs()
+//        }
+//        Log.i("diectory", "$myDir")
+//        val fname = "${subName}_${handedness}_${System.currentTimeMillis()}.png"
+//        val file = File(myDir, fname)
+//        if (file.exists()) file.delete()
+//        //
+//        FileInputStream(finalBitmap.Image).use { `in` ->
+//            FileOutputStream(file).use { out ->
+//                // Transfer bytes from in to out
+//                val buf = ByteArray(1024)
+//                var len: Int
+//                while (`in`.read(buf).also { len = it } > 0) {
+//                    out.write(buf, 0, len)
+//                }
+//            }
+//        }
+//    }
+
+    @Throws(IOException::class)
+    private fun copy(finalBitmap: SubjectMetaData, handedness: String) {
+        //
+        var subName = findViewById<EditText>(R.id.etSubjectName).text
+        val root = Environment.getExternalStorageDirectory().toString()
+        val myDir = File("$root/palm_collector_images")
+        if(!myDir.exists()){
+            myDir.mkdirs()
+        }
+        Log.i("diectory", "$myDir")
+        val fname = "${subName}_${handedness}_${System.currentTimeMillis()}.png"
+        val file = File(myDir, fname)
+        if (file.exists()) file.delete()
+        //
+        val inStream = FileInputStream(finalBitmap.Image)
+        val outStream = FileOutputStream(file)
+        val inChannel: FileChannel = inStream.channel
+        val outChannel: FileChannel = outStream.channel
+        inChannel.transferTo(0, inChannel.size(), outChannel)
+        inStream.close()
+        outStream.close()
     }
 
     private fun listFiles(): List<File>{

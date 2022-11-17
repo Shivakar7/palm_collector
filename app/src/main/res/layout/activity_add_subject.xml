@@ -5,7 +5,6 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-
     <EditText
         android:id="@+id/etSubjectName"
         android:layout_width="0dp"
@@ -15,7 +14,7 @@
         android:layout_marginEnd="10dp"
         android:ems="10"
         android:hint="Enter Subject"
-        android:inputType="textPersonName"
+        android:inputType="number"
         android:paddingRight="123dp"
         app:layout_constraintEnd_toStartOf="@+id/btn_capture_image"
         app:layout_constraintStart_toStartOf="parent"

@@ -8,6 +8,7 @@ import android.graphics.Matrix
 import android.media.ExifInterface
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.view.View
@@ -27,6 +28,7 @@ import com.google.mediapipe.solutions.hands.HandsOptions
 import com.google.mediapipe.solutions.hands.HandsResult
 import java.io.*
 import kotlin.math.sqrt
+import kotlin.random.Random
 
 class CameraActivity : AppCompatActivity(){
 
@@ -429,9 +431,20 @@ class CameraActivity : AppCompatActivity(){
         return Uri.parse(path)
     }
 
+    companion object {
+        var count = 1
+    }
+
     private fun SaveImage(finalBitmap: Bitmap) : Uri {
-        val fname = "temp_cam.jpg"
+        val fname = "temp_cam$count.png"
+        count++
         val file = File(externalCacheDir!!.path, fname)
+//        val root = Environment.getExternalStorageDirectory().toString()
+//        val myDir = File("$root/saved_images")
+//        if(!myDir.exists()){
+//            myDir.mkdirs()
+//        }
+        //val file = File(myDir, fname)
         if (file.exists()) file.delete()
         try {
             val out = FileOutputStream(file)
