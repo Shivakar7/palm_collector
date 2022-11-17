@@ -56,41 +56,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/rv_left_palm_images" />
 
-<!--    <Button-->
-<!--        android:id="@+id/btn_save"-->
-<!--        android:layout_width="195dp"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_marginStart="1dp"-->
-<!--        android:layout_marginEnd="1dp"-->
-<!--        android:layout_marginBottom="24dp"-->
-<!--        android:text="save"-->
-<!--        app:layout_constraintBottom_toBottomOf="parent"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"-->
-<!--         />-->
-
-<!--    <Button-->
-<!--        android:id="@+id/btn_cancel"-->
-<!--        android:layout_width="195dp"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_marginStart="1dp"-->
-<!--        android:layout_marginEnd="1dp"-->
-<!--        android:layout_marginBottom="24dp"-->
-<!--        android:text="cancel"-->
-<!--        app:layout_constraintBottom_toBottomOf="parent"-->
-<!--        app:layout_constraintEnd_toStartOf="@+id/btn_save"-->
-<!--        app:layout_constraintStart_toStartOf="parent" />-->
-
-    <!--    <ImageView-->
-<!--        android:id="@+id/imageView"-->
-<!--        android:layout_width="300dp"-->
-<!--        android:layout_height="300dp"-->
-<!--        app:layout_constraintBottom_toBottomOf="parent"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintTop_toTopOf="parent"-->
-<!--        android:visibility="invisible"-->
-<!--        app:srcCompat="@drawable/image_placeholder" />-->
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_right_palm_images"
         android:layout_width="380dp"
@@ -120,37 +85,6 @@
         app:layout_constraintTop_toBottomOf="@+id/textLeft"
         tools:listitem="@layout/item_palm"/>
 
-    <!--    <TextView-->
-<!--        android:id="@+id/text_add_images"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_marginStart="8dp"-->
-<!--        android:layout_marginTop="25dp"-->
-<!--        android:layout_marginEnd="8dp"-->
-<!--        android:text="Please add images to didplay"-->
-<!--        android:textSize="20dp"-->
-<!--        android:visibility="invisible"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        />-->
-
-<!--    <FrameLayout-->
-<!--        android:id="@+id/fl_preview_display"-->
-<!--        android:layout_width="0dp"-->
-<!--        android:layout_height="0dp"-->
-<!--        android:visibility="invisible"-->
-<!--        app:layout_constraintTop_toBottomOf="@id/btn_capture_image"-->
-<!--        app:layout_constraintBottom_toBottomOf="parent"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintEnd_toEndOf="parent">-->
-<!--        <TextView-->
-<!--            android:id="@+id/tv_no_view"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:gravity="center"-->
-<!--            android:text="Press camera button to start" />-->
-<!--    </FrameLayout>-->
-
     <TextView
         android:id="@+id/textDir"
         android:layout_width="wrap_content"
@@ -164,6 +98,5 @@
         app:layout_constraintHorizontal_bias="0.493"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/rv_right_palm_images" />
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

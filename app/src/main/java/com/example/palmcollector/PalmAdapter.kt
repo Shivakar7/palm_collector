@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.android.synthetic.main.item_list.view.*
 import kotlinx.android.synthetic.main.item_palm.view.*
 
 class PalmAdapter(
@@ -32,7 +31,6 @@ class PalmAdapter(
 
         if (holder is PalmAdapter.PalmViewHolder) {
             val myBitmap = BitmapFactory.decodeFile(model.Image.getAbsolutePath())
-            //val myBitmap = model.Image
             holder.itemView.ivPalmImage.setImageBitmap(myBitmap)
 
             holder.itemView.setOnClickListener {

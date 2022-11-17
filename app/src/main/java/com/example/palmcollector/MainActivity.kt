@@ -5,8 +5,6 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -27,14 +25,10 @@ import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
-import java.nio.file.Files
-import java.nio.file.Paths
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-
-    var addSubjectActivity: AddSubjectActivity? = null
 
     //Models
     private lateinit var subject: Subject
@@ -69,20 +63,6 @@ class MainActivity : AppCompatActivity() {
                 @RequiresApi(Build.VERSION_CODES.O)
                 override fun onPermissionsChecked(report: MultiplePermissionsReport) {
                     if(report!!.areAllPermissionsGranted()){
-//                        val firstRun =
-//                            getSharedPreferences("preferences", MODE_PRIVATE).getBoolean("firstrun", true)
-//                        if (firstRun) {
-//                            //set the firstrun to false so the next run can see it.
-//                            getSharedPreferences("preferences", MODE_PRIVATE).edit().putBoolean("firstrun", false)
-//                                .commit()
-//                            Toast.makeText(applicationContext, "Directory created \n /storage/emulated/0/palm_collector_images", Toast.LENGTH_LONG)
-//                                .show()
-//                            val root = Environment.getExternalStorageDirectory().toString()
-////                            val myDir = File("$root/palm_collector_images")
-////                            if(!myDir.exists()) {
-////                                myDir.mkdirs()
-////                            }
-//                            Files.createDirectories(Paths.get("$root/palm_collector_images"))
                         if(!myDir.exists()){
                             myDir.mkdirs()
                             Toast.makeText(applicationContext, "Directory created \n /storage/emulated/0/palm_collector_images", Toast.LENGTH_LONG)
@@ -91,7 +71,6 @@ class MainActivity : AppCompatActivity() {
                             listOfFiles = listFiles()
                             //Toast.makeText(applicationContext, "Directory exists", Toast.LENGTH_LONG).show()
                         }
-//                        }
                         if(listOfFiles.isEmpty()){
                             rv_subject_list.visibility = View.INVISIBLE
                             sample_text.visibility = View.VISIBLE
@@ -197,14 +176,6 @@ class MainActivity : AppCompatActivity() {
         files.sortWith { text1, text2 ->
             text1.compareTo(text2)
         }
-
-//        val myBitmaps : ArrayList<Bitmap> = arrayListOf()
-//
-//        for(i in files){
-//            var bitmap = BitmapFactory.decodeFile(i.toString())
-//            myBitmaps.add(bitmap)
-//        }
-
         Log.d("Files","Size:"+files.size)
         return files
     }
@@ -227,8 +198,6 @@ class MainActivity : AppCompatActivity() {
      * A native method that is implemented by the 'palmcollector' native library,
      * which is packaged with this application.
      */
-
-    //external fun stringFromJNI(): String
 
     companion object {
         // Used to load the 'mldemo' library on application startup.

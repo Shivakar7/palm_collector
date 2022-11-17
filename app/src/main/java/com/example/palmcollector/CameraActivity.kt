@@ -1,20 +1,14 @@
 package com.example.palmcollector
 
-import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.Canvas
 import android.graphics.Matrix
-import android.media.ExifInterface
 import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
-import android.provider.MediaStore
 import android.util.Log
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.TextView
-import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.AppCompatActivity
 import com.google.mediapipe.components.TextureFrameConsumer
 import com.google.mediapipe.framework.TextureFrame
@@ -26,9 +20,9 @@ import com.google.mediapipe.solutions.hands.HandLandmark
 import com.google.mediapipe.solutions.hands.Hands
 import com.google.mediapipe.solutions.hands.HandsOptions
 import com.google.mediapipe.solutions.hands.HandsResult
-import java.io.*
+import java.io.File
+import java.io.FileOutputStream
 import kotlin.math.sqrt
-import kotlin.random.Random
 
 class CameraActivity : AppCompatActivity(){
 
@@ -41,22 +35,15 @@ class CameraActivity : AppCompatActivity(){
     // Run the pipeline and the model inference on GPU or CPU.
     private val RUN_ON_GPU = true
 
-    //private var latestHandsResult: HandsResult? = null
-
-    private var imageGetter: ActivityResultLauncher<Intent>? = null
-
     private var imageView: HandsResultImageView? = null
 
     private var leftOrRight: String? = null
-
-    private var flag = false
 
     private enum class InputSource {
         CAMERA
     }
 
     private var glSurfaceView: SolutionGlSurfaceView<HandsResult>? = null
-    private var surfaceHolder = glSurfaceView?.holder
 
     // Live camera demo UI and camera components.
     private var cameraInput: CameraInput? = null
@@ -186,7 +173,6 @@ class CameraActivity : AppCompatActivity(){
                             palmOrBack = "back"
                         }
                         //imageanalysis
-                        //Log.i("inputBitmap", "$bitmap")
                         val matrix = Matrix()
 
                         matrix.postRotate(180f)
@@ -206,15 +192,12 @@ class CameraActivity : AppCompatActivity(){
                         val flippedBitmap = rotatedBitmap.flip(-1f, 1f, cx, cy)
 
                         var uri = SaveImage(flippedBitmap)
-//                            var uri = getImageUri(this, bitmap)
                         var i = Intent(this, AddSubjectActivity::class.java)
                         i.putExtra("bitmapURI_intent", uri.toString())
                         i.putExtra("handedness_intent", leftOrRight)
                         i.putExtra("frontOrBack_intent", palmOrBack)
-                        //imageGetter!!.launch(i)
                         setResult(78, i)
                         finish()
-//                            this.startActivity(i)
                     } else if (area in 0.0..1.0) {
                         runOnUiThread{guide.text = "Bring palm closer"}
                     } else if (area > 1.3){
@@ -240,104 +223,10 @@ class CameraActivity : AppCompatActivity(){
         frameLayout.requestLayout()
     }
 
-    // add sub code
-
-//    private fun imageAnalysis(inputBitmap: Bitmap) : Bitmap? {
-//
-//
-//        var bitmap: Bitmap? = null
-//        var uriTemp = getImageUri(this, inputBitmap)
-//        try {
-//            bitmap = downscaleBitmap(
-//                MediaStore.Images.Media.getBitmap(
-//                    this.contentResolver, uriTemp
-//                )
-//            )
-//        } catch (e: IOException) {
-//            Log.e(TAG, "Bitmap reading error:$e")
-//        }
-//        try {
-//            val imageData =
-//                this.contentResolver.openInputStream(uriTemp!!)
-//            if (bitmap != null && imageData != null) {
-//                bitmap = rotateBitmap(bitmap, imageData)
-//                Log.i("rotationhappens", "$bitmap")
-//            }
-//        } catch (e: IOException) {
-//            Log.e(TAG, "Bitmap rotation error:$e")
-//        }
-//        if (bitmap != null) {
-//            hands?.send(bitmap)
-////            hands = Hands(
-////                this,
-////                HandsOptions.builder()
-////                    .setStaticImageMode(true)
-////                    .setMaxNumHands(2)
-////                    .setRunOnGpu(RUN_ON_GPU)
-////                    .build()
-////            )
-//            hands?.setResultListener { handsResult: HandsResult? ->
-//                if(flag == false){
-//                    //latestHandsResult = handsResult
-//                    imageView?.setHandsResult(handsResult)
-//                    imageView?.setImageDrawable(null)
-//                    imageView?.visibility = View.VISIBLE
-//                    Log.i("henlo", "block")
-//                    //**
-//                    flag = true
-//
-//                    runOnUiThread { imageView?.update() }
-//
-//                    Log.i("hand value", "$leftOrRight")
-//                    Log.i("palmness", "$palmOrBack")
-//                }
-//                hands?.setErrorListener { message: String, e: RuntimeException? ->
-//                    Log.e(
-//                        TAG, "MediaPipe Hands error:$message"
-//                    )
-//                }
-//                }
-//                }
-//        return bitmap
-//        }
-
-
-//    private fun rotateBitmap(inputBitmap: Bitmap, imageData: InputStream): Bitmap? {
-//        val orientation = ExifInterface(imageData).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED)
-//        if (orientation == ExifInterface.ORIENTATION_NORMAL) {
-//            return inputBitmap
-//        }
-//        val matrix = Matrix()
-//        when (orientation) {
-//            ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
-//            ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
-//            ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
-//            else -> matrix.postRotate(0f)
-//        }
-//        return Bitmap.createBitmap(
-//            inputBitmap, 0, 0, inputBitmap.width, inputBitmap.height, matrix, true
-//        )
-//    }
-
     private fun Bitmap.flip(x: Float, y: Float, cx: Float, cy: Float): Bitmap {
         val matrix = Matrix().apply { postScale(x, y, cx, cy) }
         return Bitmap.createBitmap(this, 0, 0, width, height, matrix, true)
     }
-
-    private fun downscaleBitmap(originalBitmap: Bitmap): Bitmap? {
-        val aspectRatio = originalBitmap.width.toDouble() / originalBitmap.height
-        var width = originalBitmap!!.width
-        var height = originalBitmap!!.height
-        if (originalBitmap!!.width.toDouble() / originalBitmap!!.height > aspectRatio) {
-            width = (height * aspectRatio).toInt()
-        } else {
-            height = (width / aspectRatio).toInt()
-        }
-        Log.i("ScaleBitmap", "$width, $height, $originalBitmap")
-        return Bitmap.createScaledBitmap(originalBitmap, width, height, false)
-    }
-
-    // add sub code
 
     private fun logWristLandmark(result: HandsResult, showPixelValues: Boolean) {
         if (result.multiHandLandmarks().isEmpty()) {
@@ -399,38 +288,6 @@ class CameraActivity : AppCompatActivity(){
         }
     }
 
-    fun captureImage() : Bitmap {
-        var bitmap = Bitmap.createBitmap(
-            glSurfaceView!!.getWidth(), glSurfaceView!!.getHeight(),
-            Bitmap.Config.ARGB_8888
-        )
-        var canvas = Canvas(bitmap)
-        glSurfaceView!!.draw(canvas)
-
-        return bitmap
-    }
-
-    fun getBitmapUri() : Uri{
-        val FILENAME = "image.png"
-        val PATH = externalCacheDir!!.path
-        val f = File(PATH, FILENAME)
-        val yourUri: Uri = Uri.fromFile(f)
-
-        return yourUri
-    }
-
-    fun getImageUri(inContext: Context, inImage: Bitmap): Uri? {
-        val bytes = ByteArrayOutputStream()
-        inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes)
-        val path = MediaStore.Images.Media.insertImage(
-            inContext.getContentResolver(),
-            inImage,
-            "Titletata",
-            null
-        )
-        return Uri.parse(path)
-    }
-
     companion object {
         var count = 1
     }
@@ -439,12 +296,6 @@ class CameraActivity : AppCompatActivity(){
         val fname = "temp_cam$count.png"
         count++
         val file = File(externalCacheDir!!.path, fname)
-//        val root = Environment.getExternalStorageDirectory().toString()
-//        val myDir = File("$root/saved_images")
-//        if(!myDir.exists()){
-//            myDir.mkdirs()
-//        }
-        //val file = File(myDir, fname)
         if (file.exists()) file.delete()
         try {
             val out = FileOutputStream(file)
@@ -454,10 +305,6 @@ class CameraActivity : AppCompatActivity(){
         } catch (e: Exception) {
             e.printStackTrace()
         }
-
-        var uridaw = Uri.fromFile(file)
-        Log.i("urichech", "$uridaw")
-
-        return uridaw
+        return Uri.fromFile(file)
     }
 }

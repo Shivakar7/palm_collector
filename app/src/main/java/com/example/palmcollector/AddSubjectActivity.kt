@@ -6,8 +6,6 @@ import android.app.AlertDialog
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -23,10 +21,8 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.mediapipe.solutions.hands.Hands
 import com.google.mediapipe.solutions.hands.HandsResult
 import java.io.File
 import java.io.FileInputStream
@@ -36,27 +32,16 @@ import java.nio.channels.FileChannel
 
 class AddSubjectActivity : AppCompatActivity() {
 
-    private val TAG = "MainActivity"
-
     private var imageGetter: ActivityResultLauncher<Intent>? = null
 
     private var cameraPermission: ActivityResultLauncher<String>? = null
 
     private var storagePermission: ActivityResultLauncher<String>? = null
 
-    private var hands: Hands? = null
-
-    // Run the pipeline and the model inference on GPU or CPU.
-    private val RUN_ON_GPU = true
-
-    private var imageView: HandsResultImageView? = null
-
     private var latestHandsResult: HandsResult? = null
 
     private lateinit var leftPalmRecyclerView: RecyclerView
     private lateinit var rightPalmRecyclerView: RecyclerView
-
-    //private var leftOrRight: String
 
     private var tempLeftList = mutableListOf<SubjectMetaData>()
     private var tempRightList = mutableListOf<SubjectMetaData>()
@@ -64,25 +49,14 @@ class AddSubjectActivity : AppCompatActivity() {
     //    Models
     private var subject: Subject? = null
 
-    private var passableSubjectList: MutableList<Subject> = mutableListOf()
-
-    private val listOfFiles = listFiles()
-
-    //private var palmOrBack = "palm"
-
     // Intent data
-
     private var existSubLeftSize = 0
     private var existSubRightSize = 0
-
 
     private var leftOrRight : String? = null
     private var palmOrBack : String? = null
 
-    private var theBitmap : Bitmap? = null
-    //private var theBitmapfile : File? = null
-    //private var bitmapFiles = mutableListOf<File>()
-    private var kilo = 0
+    private var listOfFiles = listFiles()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -96,19 +70,11 @@ class AddSubjectActivity : AppCompatActivity() {
         initialize()
         initClickListener()
         existingSubjectAdd()
-
-
     }
 
     private fun existingSubjectAdd(){
-        // capture code
-
-
         if(intent.hasExtra(MainActivity.SUBJECT_DETAILS)){
             subject = intent.getSerializableExtra(MainActivity.SUBJECT_DETAILS) as Subject
-//            findViewById<ImageButton>(R.id.btn_capture_image).setOnClickListener {
-//                performImageCapture()
-//            }
         }
 
         if(subject != null){
@@ -130,9 +96,7 @@ class AddSubjectActivity : AppCompatActivity() {
             rightPalmRecyclerView.layoutManager = rightLayoutManager
             rightPalmRecyclerView.adapter = PalmAdapter(subject!!.rightList)
         }
-
     }
-
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.add_subject_menu, menu)
@@ -179,14 +143,6 @@ class AddSubjectActivity : AppCompatActivity() {
                         for(i in 0..tempRightList.size-1){
                             val bitmapImg = tempRightList[i]
                             copy(bitmapImg, "right")
-                            Log.e("fileu", "${bitmapImg.Image}")
-                            Log.e("filefile", "${bitmapImg.Image.absoluteFile}")
-                            Log.e("fileexists", "${bitmapImg.Image.exists()}")
-                            Log.e("filefileexists", "${bitmapImg.Image.absoluteFile.exists()}")
-                            Log.e("filedirectory", "${bitmapImg.Image.isDirectory()}")
-                            Log.e("filefiledirectory", "${bitmapImg.Image.absoluteFile.isDirectory()}")
-                            Log.e("filecanread", "${bitmapImg.Image.canRead()}")
-                            Log.e("filefilecanread", "${bitmapImg.Image.absoluteFile.canRead()}")
                         }
                     }
                     setResult(Activity.RESULT_OK)
@@ -215,11 +171,7 @@ class AddSubjectActivity : AppCompatActivity() {
 
             if (checkCameraPermission() && checkStoragePermission()) {
                 performImageCapture()
-                val pickImageIntent = Intent(this, CameraActivity::class.java)
-
-//                    finish()
             } else {
-//                    Toast.makeText(this, "Please enable camera and storage permissions",Toast.LENGTH_SHORT).show()
                 showRationalDialogForPermissions()
                 storagePermission?.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
                 storagePermission?.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -256,8 +208,6 @@ class AddSubjectActivity : AppCompatActivity() {
     }
 
     private fun initialize() {
-
-        // The Intent to capture image from camera.
         imageGetter =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
                 if (result.resultCode == 78) {
@@ -313,172 +263,27 @@ class AddSubjectActivity : AppCompatActivity() {
                 }
             }
     }
-//                    var bitmap: Bitmap? = null
-//
-//                    Log.d(TAG, "The temporary url is : $tempUrl")
-//                    try {
-//                        bitmap = downscaleBitmap(
-//                            MediaStore.Images.Media.getBitmap(
-//                                this.contentResolver, tempUrl
-//                            )
-//                        )
-//                    } catch (e: IOException) {
-//                        Log.e(TAG, "Bitmap reading error:$e")
-//                    }
-//                    try {
-//                        val imageData =
-//                            this.contentResolver.openInputStream(tempUrl)
-//                        if (bitmap != null && imageData != null) {
-//                            bitmap = rotateBitmap(bitmap, imageData)
-//                            Log.i("rotationhappens", "$bitmap")
-//                        }
-//                    } catch (e: IOException) {
-//                        Log.e(TAG, "Bitmap rotation error:$e")
-//                    }
-//                    if (bitmap != null) {
-//                        hands = Hands(
-//                            this,
-//                            HandsOptions.builder()
-//                                .setStaticImageMode(true)
-//                                .setMaxNumHands(2)
-//                                .setRunOnGpu(RUN_ON_GPU)
-//                                .build()
-//                        )
-//                        hands?.send(bitmap)
-//                        hands?.setResultListener { handsResult: HandsResult? ->
-//                            latestHandsResult = handsResult
-//
-//                            if (imageView?.calculatehandedness(handsResult) == true) {
-//                                leftOrRight = "right"
-//                            } else {
-//                                leftOrRight = "left"
-//                            }
-//                            if (imageView?.frontOrBack(handsResult) == true) {
-//                                palmOrBack = "palm"
-//                            } else {
-//                                palmOrBack = "back"
-//                            }
 
-//                            if (latestHandsResult?.let { NativeInterface().display(it).landmarksize } == 21 && palmOrBack == "palm") {
-//                                Toast.makeText(this, "Palm detected!", Toast.LENGTH_SHORT).show()
-//
-////                                if (leftOrRight == "left") {
-////                                    tempLeftList.add(bitmap)
-////                                } else {
-////                                    tempRightList.add(bitmap)
-////                                }
-//
-//                                val leftLayoutManager =
-//                                    LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-//                                leftPalmRecyclerView = findViewById(R.id.rv_left_palm_images)
-//                                leftPalmRecyclerView.layoutManager = leftLayoutManager
-//                                leftPalmRecyclerView.adapter = TempPalmAdapter(tempLeftList)
-//
-//                                val rightLayoutManager =
-//                                    LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-//                                rightPalmRecyclerView = findViewById(R.id.rv_right_palm_images)
-//                                rightPalmRecyclerView.layoutManager = rightLayoutManager
-//                                rightPalmRecyclerView.adapter = TempPalmAdapter(tempRightList)
-//                            } else {
-//                                Toast.makeText(
-//                                    this,
-//                                    "No palm detected. Try again.",
-//                                    Toast.LENGTH_SHORT
-//                                )
-//                                    .show()
-//                            }
-//                        }
-//                    }
-//
-//                }
-//
-//            }
-//        }
+    private fun listFiles(): List<File>{
+        var path = Environment.getExternalStorageDirectory().toString()+"/palm_collector_images";
+        Log.d("Files","Path:"+path)
+        val directory=File(path)
+        if(!directory.exists()){
+            return arrayListOf()
+        }
+        val files=arrayListOf<File>(*directory.listFiles())
 
+        files.sortWith { text1, text2 ->
+            text1.compareTo(text2)
+        }
+        Log.d("Files","Size:"+files.size)
+        return files
+    }
 
     private fun performImageCapture() {
-        //hands?.close()
-        //setupStaticImageModePipeline()
-
-        // Open camera to capture image
-//        val outputFileUri: Uri = getCaptureImageOutputUri()
-//        val pickImageIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-//        pickImageIntent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri)
-//        imageGetter!!.launch(pickImageIntent)
-
         val pickImageIntent = Intent(this, CameraActivity::class.java)
         imageGetter!!.launch(pickImageIntent)
-//        pickImageIntent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri)
-//        imageGetter!!.launch(pickImageIntent)
-
     }
-
-//    private fun performXImageCapture(){
-//        val intent = Intent(this, CameraActivity::class.java)
-//        startActivity(intent)
-//    }
-
-    private fun getCaptureImageOutputUri(): Uri {
-        val root = Environment.getExternalStorageDirectory().absolutePath
-        val myDir = File("$root/saved_images")
-        return FileProvider.getUriForFile(
-            this@AddSubjectActivity,
-            "com.example.palmcollector.provider",
-            //File(externalCacheDir!!.path, "temp.png")
-            File(myDir, "temp_cam.png")
-        )
-    }
-
-    private fun saveImageToDirectory(finalBitmap: SubjectMetaData, handedness: String) {
-        var subName = findViewById<EditText>(R.id.etSubjectName).text
-        val root = Environment.getExternalStorageDirectory().toString()
-        val myDir = File("$root/palm_collector_images")
-        if(!myDir.exists()){
-            myDir.mkdirs()
-        }
-        Log.i("diectory", "$myDir")
-        val fname = "${subName}_${handedness}_${System.currentTimeMillis()}.png"
-        val file = File(myDir, fname)
-        if (file.exists()) file.delete()
-        try {
-//            finalBitmap.copyTo(file)
-            val out = FileOutputStream(file)
-            val bitmapu = BitmapFactory.decodeFile(finalBitmap.Image.absolutePath)
-            Log.i("abspathu", finalBitmap.Image.absolutePath)
-            bitmapu.compress(Bitmap.CompressFormat.PNG, 100, out)
-            Log.i("output strean block", "executed")
-            out.flush()
-            out.close()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
-//    @Throws(IOException::class)
-//    fun copy(finalBitmap: SubjectMetaData, handedness: String) {
-//        //
-//        var subName = findViewById<EditText>(R.id.etSubjectName).text
-//        val root = Environment.getExternalStorageDirectory().toString()
-//        val myDir = File("$root/palm_collector_images")
-//        if(!myDir.exists()){
-//            myDir.mkdirs()
-//        }
-//        Log.i("diectory", "$myDir")
-//        val fname = "${subName}_${handedness}_${System.currentTimeMillis()}.png"
-//        val file = File(myDir, fname)
-//        if (file.exists()) file.delete()
-//        //
-//        FileInputStream(finalBitmap.Image).use { `in` ->
-//            FileOutputStream(file).use { out ->
-//                // Transfer bytes from in to out
-//                val buf = ByteArray(1024)
-//                var len: Int
-//                while (`in`.read(buf).also { len = it } > 0) {
-//                    out.write(buf, 0, len)
-//                }
-//            }
-//        }
-//    }
 
     @Throws(IOException::class)
     private fun copy(finalBitmap: SubjectMetaData, handedness: String) {
@@ -503,97 +308,6 @@ class AddSubjectActivity : AppCompatActivity() {
         outStream.close()
     }
 
-    private fun listFiles(): List<File>{
-        var path = Environment.getExternalStorageDirectory().toString()+"/palm_collector_images";
-        Log.d("Files","Path:"+path)
-        val directory=File(path)
-        if(!directory.exists()){
-            return arrayListOf()
-        }
-        val files=arrayListOf<File>(*directory.listFiles())
-        files.sortWith { text1, text2 ->
-            text1.compareTo(text2)
-        }
-        Log.d("Files","Size:"+files.size)
-        return files
-    }
-
-    /** Sets up core workflow for static image mode.  */
-    private fun setupStaticImageModePipeline() {
-        // Initializes a new MediaPipe Hands solution instance in the static image mode.
-//        hands = Hands(
-//            this,
-//            HandsOptions.builder()
-//                .setStaticImageMode(true)
-//                .setMaxNumHands(2)
-//                .setRunOnGpu(RUN_ON_GPU)
-//                .build()
-//        )
-//
-//        // Connects MediaPipe Hands solution to the user-defined HandsResultImageView.
-//        hands?.setResultListener { handsResult: HandsResult? ->
-//            latestHandsResult = handsResult
-//            imageView?.setHandsResult(handsResult)
-//            if(imageView?.calculatehandedness(handsResult) == true){
-//                leftOrRight = "right"
-//            }else{
-//                leftOrRight = "left"
-//            }
-//            if(imageView?.frontOrBack(handsResult)==true){
-//                palmOrBack = "palm"
-//            }else{
-//                palmOrBack = "back"
-//            }
-//
-//            runOnUiThread { imageView?.update() }
-//
-//            Log.i("hand value", "$leftOrRight")
-//            Log.i("palmness", "$palmOrBack")
-//        }
-//        hands?.setErrorListener { message: String, e: RuntimeException? ->
-//            Log.e(
-//                TAG, "MediaPipe Hands error:$message"
-//            )
-//        }
-//         Updates the preview layout
-//        val frameLayout = findViewById<FrameLayout>(R.id.fl_preview_display)
-//        frameLayout.removeAllViewsInLayout()
-//        imageView?.setImageDrawable(null)
-//        frameLayout.addView(imageView)
-//        imageView?.visibility = View.VISIBLE
-    }
-
-    private fun downscaleBitmap(originalBitmap: Bitmap): Bitmap? {
-        val aspectRatio = originalBitmap.width.toDouble() / originalBitmap.height
-        var width = imageView!!.width
-        var height = imageView!!.height
-        if (imageView!!.width.toDouble() / imageView!!.height > aspectRatio) {
-            width = (height * aspectRatio).toInt()
-        } else {
-            height = (width / aspectRatio).toInt()
-        }
-        Log.i("ScaleBitmap", "$width, $height, $originalBitmap")
-        return Bitmap.createScaledBitmap(originalBitmap, width, height, false)
-    }
-
-//    @Throws(IOException::class)
-//    private fun rotateBitmap(inputBitmap: Bitmap, imageData: InputStream): Bitmap? {
-//        val orientation = ExifInterface(imageData).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
-//        if (orientation == ExifInterface.ORIENTATION_NORMAL) {
-//            return inputBitmap
-//        }
-//        val matrix = Matrix()
-//        when (orientation) {
-//            ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
-//            ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
-//            ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
-//            else -> matrix.postRotate(0f)
-//        }
-//        return Bitmap.createBitmap(
-//            inputBitmap, 0, 0, inputBitmap.width, inputBitmap.height, matrix, true
-//        )
-//    }
-
     private fun checkCameraPermission(): Boolean {
         return ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
     }
@@ -601,11 +315,5 @@ class AddSubjectActivity : AppCompatActivity() {
     private fun checkStoragePermission(): Boolean {
         return ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
     }
-
-    companion object {
-        var BITMAP_REQUEST_CODE = 2
-    }
-
-
 
 }
