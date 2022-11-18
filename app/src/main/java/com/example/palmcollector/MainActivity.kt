@@ -30,11 +30,6 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
-    //Models
-    private lateinit var subject: Subject
-    private lateinit var subjectList: SubjectList
-    private lateinit var subjectMetaData: SubjectMetaData
-
     // Temporary list
     private var passableSubjectList: MutableList<Subject> = mutableListOf()
 
@@ -45,7 +40,23 @@ class MainActivity : AppCompatActivity() {
     val root = Environment.getExternalStorageDirectory().toString()
     val myDir = File("$root/palm_collector_images")
 
-    private lateinit var listOfFiles : List<File>
+    companion object {
+        // Used to load the 'mldemo' library on application startup.
+        init {
+            System.loadLibrary("palmcollector")
+        }
+        var SUBJECT_DETAILS = "subject_details"
+        var ADD_SUBJECT_ACTIVITY_REQUEST_CODE = 1
+
+        internal lateinit var listOfFiles : List<File>
+
+        //Models
+        private lateinit var subject: Subject
+        internal lateinit var subjectList: SubjectList
+        internal lateinit var subjectMetaData: SubjectMetaData
+    }
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -104,6 +115,7 @@ class MainActivity : AppCompatActivity() {
                             rv_subject_list.layoutManager = LinearLayoutManager(this@MainActivity)
                             subjectAdapter.setOnClickListener(object : SubjectAdapter.OnClickListener{
                                 override fun onClick(position: Int, model: Subject) {
+                                    AddSubjectActivity.flag = true
                                     val intent = Intent(this@MainActivity, AddSubjectActivity::class.java)
                                     intent.putExtra(SUBJECT_DETAILS, model)
                                     startActivityForResult(intent, ADD_SUBJECT_ACTIVITY_REQUEST_CODE)
@@ -125,6 +137,12 @@ class MainActivity : AppCompatActivity() {
             }).onSameThread()
             .check()
 
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        subjectAdapter.notifyDataSetChanged()
+        recreate()
     }
 
     fun showRationalDialogForPermissions(){
@@ -199,12 +217,5 @@ class MainActivity : AppCompatActivity() {
      * which is packaged with this application.
      */
 
-    companion object {
-        // Used to load the 'mldemo' library on application startup.
-        init {
-            System.loadLibrary("palmcollector")
-        }
-        var SUBJECT_DETAILS = "subject_details"
-        var ADD_SUBJECT_ACTIVITY_REQUEST_CODE = 1
-    }
+
 }

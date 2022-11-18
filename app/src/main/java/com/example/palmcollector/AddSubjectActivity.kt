@@ -53,10 +53,12 @@ class AddSubjectActivity : AppCompatActivity() {
     private var existSubLeftSize = 0
     private var existSubRightSize = 0
 
+    private var isNavigated = false
+
+
+
     private var leftOrRight : String? = null
     private var palmOrBack : String? = null
-
-    private var listOfFiles = listFiles()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,6 +77,10 @@ class AddSubjectActivity : AppCompatActivity() {
     private fun existingSubjectAdd(){
         if(intent.hasExtra(MainActivity.SUBJECT_DETAILS)){
             subject = intent.getSerializableExtra(MainActivity.SUBJECT_DETAILS) as Subject
+        }
+
+        if(intent.hasExtra(EXISTING_SUBJECT)){
+            subject = intent.getSerializableExtra(EXISTING_SUBJECT) as Subject
         }
 
         if(subject != null){
@@ -124,6 +130,7 @@ class AddSubjectActivity : AppCompatActivity() {
                                 copy(bitmapImg, "right")
                             }
                         }
+                        flag = false
                         setResult(Activity.RESULT_OK)
                         finish()
                         Log.i("onclicklistener", "workingu")
@@ -160,26 +167,51 @@ class AddSubjectActivity : AppCompatActivity() {
 
 
     override fun onSupportNavigateUp(): Boolean {
-        recreate()
+        flag = false
+        //recreate()
         finish()
         return true
     }
 
     private fun initClickListener() {
-        var subName = findViewById<EditText>(R.id.etSubjectName).toString()
         findViewById<ImageButton>(R.id.btn_capture_image).setOnClickListener {
-
-            if (checkCameraPermission() && checkStoragePermission()) {
-                performImageCapture()
+        if(checkCameraPermission() && checkStoragePermission()) {
+            var subName = findViewById<EditText>(R.id.etSubjectName).text.toString()
+            Log.e("theonclickworks", "$subName")
+            if (flag == false) {
+                //if(isNavigated==false){
+                for (i in 0..(MainActivity.subjectList.subjects.size - 1)) {
+                    //Log.e("subjectsizeu", "${MainActivity.subjectList.subjects.size - 1}")
+                    //Log.e("bon", "${MainActivity.subjectList.subjects[i].subjectID}")
+                    if (MainActivity.subjectList.subjects[i].subjectID.equals(subName)) {
+                        flag = true
+                        //isNavigated = true
+                        Toast.makeText(this, "Subject ID already exists!", Toast.LENGTH_SHORT).show()
+                        Log.e("equalworks", "${MainActivity.subjectList.subjects[i].subjectID}")
+                        val intent = Intent(this@AddSubjectActivity, AddSubjectActivity::class.java)
+                        intent.putExtra(EXISTING_SUBJECT, MainActivity.subjectList.subjects[i])
+                        startActivityForResult(intent, EXISTING_SUBJECT_REQUEST_CODE)
+                        finish()
+                        break
+                    }
+                }
+                //performImageCapture()
             } else {
-                showRationalDialogForPermissions()
-                storagePermission?.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
-                storagePermission?.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                storagePermission?.launch(Manifest.permission.MANAGE_EXTERNAL_STORAGE)
-                cameraPermission?.launch(Manifest.permission.CAMERA)
+                performImageCapture()
+                flag = true
             }
+            if (flag == false) {
+                performImageCapture()
+                flag = true
+            }
+        } else {
+            showRationalDialogForPermissions()
+            storagePermission?.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+            storagePermission?.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            storagePermission?.launch(Manifest.permission.MANAGE_EXTERNAL_STORAGE)
+            cameraPermission?.launch(Manifest.permission.CAMERA)
         }
-
+        }
         latestHandsResult?.let {
             Toast.makeText(this,"Landmark Count of the image obtained from jni ${NativeInterface().display(it).landmarksize}", Toast.LENGTH_SHORT).show()
             Log.i("is this", "executing")
@@ -288,7 +320,7 @@ class AddSubjectActivity : AppCompatActivity() {
     @Throws(IOException::class)
     private fun copy(finalBitmap: SubjectMetaData, handedness: String) {
         //
-        var subName = findViewById<EditText>(R.id.etSubjectName).text
+        var subName = findViewById<EditText>(R.id.etSubjectName).text.toString()
         val root = Environment.getExternalStorageDirectory().toString()
         val myDir = File("$root/palm_collector_images")
         if(!myDir.exists()){
@@ -316,4 +348,9 @@ class AddSubjectActivity : AppCompatActivity() {
         return ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
     }
 
+    companion object{
+        var EXISTING_SUBJECT = "existing_subject"
+        var EXISTING_SUBJECT_REQUEST_CODE = 44
+        internal var flag = false
+    }
 }
