@@ -53,10 +53,6 @@ class AddSubjectActivity : AppCompatActivity() {
     private var existSubLeftSize = 0
     private var existSubRightSize = 0
 
-    private var isNavigated = false
-
-
-
     private var leftOrRight : String? = null
     private var palmOrBack : String? = null
 
@@ -179,13 +175,9 @@ class AddSubjectActivity : AppCompatActivity() {
             var subName = findViewById<EditText>(R.id.etSubjectName).text.toString()
             Log.e("theonclickworks", "$subName")
             if (flag == false) {
-                //if(isNavigated==false){
                 for (i in 0..(MainActivity.subjectList.subjects.size - 1)) {
-                    //Log.e("subjectsizeu", "${MainActivity.subjectList.subjects.size - 1}")
-                    //Log.e("bon", "${MainActivity.subjectList.subjects[i].subjectID}")
                     if (MainActivity.subjectList.subjects[i].subjectID.equals(subName)) {
                         flag = true
-                        //isNavigated = true
                         Toast.makeText(this, "Subject ID already exists!", Toast.LENGTH_SHORT).show()
                         Log.e("equalworks", "${MainActivity.subjectList.subjects[i].subjectID}")
                         val intent = Intent(this@AddSubjectActivity, AddSubjectActivity::class.java)
@@ -195,7 +187,6 @@ class AddSubjectActivity : AppCompatActivity() {
                         break
                     }
                 }
-                //performImageCapture()
             } else {
                 performImageCapture()
                 flag = true
@@ -294,22 +285,6 @@ class AddSubjectActivity : AppCompatActivity() {
                     }
                 }
             }
-    }
-
-    private fun listFiles(): List<File>{
-        var path = Environment.getExternalStorageDirectory().toString()+"/palm_collector_images";
-        Log.d("Files","Path:"+path)
-        val directory=File(path)
-        if(!directory.exists()){
-            return arrayListOf()
-        }
-        val files=arrayListOf<File>(*directory.listFiles())
-
-        files.sortWith { text1, text2 ->
-            text1.compareTo(text2)
-        }
-        Log.d("Files","Size:"+files.size)
-        return files
     }
 
     private fun performImageCapture() {

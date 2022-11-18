@@ -136,7 +136,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }).onSameThread()
             .check()
-
     }
 
     override fun onRestart() {

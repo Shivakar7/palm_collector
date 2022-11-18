@@ -39,6 +39,8 @@ class CameraActivity : AppCompatActivity(){
 
     private var leftOrRight: String? = null
 
+    private var framecount = 0
+
     private enum class InputSource {
         CAMERA
     }
@@ -152,43 +154,45 @@ class CameraActivity : AppCompatActivity(){
                         area += (s*(s-a)*(s-b)*(s-c))
                     }
 
-                    Log.i("areavalue", "$area")
+                    Log.e("areavalue", "$area")
 
                     //runOnUiThread {
-                    if(area in 1.0..1.3){
+                    if(area in 0.3..1.0){
+                        framecount++
                         Log.i("beluga_isPalm", "${imageView?.frontOrBack(handsResult)}")
                         Log.i("walter_isLeft", "${imageView?.calculatehandedness(handsResult)}")
                         runOnUiThread{guide.text = "Hold still"}
                         //stopCurrentPipeline()
                         //imageanalysis
-                        var bitmap = handsResult.inputBitmap()
-                        if (imageView?.calculatehandedness(handsResult) == true) {
-                            leftOrRight = "right"
-                        } else {
-                            leftOrRight = "left"
-                        }
-                        if (imageView?.frontOrBack(handsResult) == true) {
-                            palmOrBack = "palm"
-                        } else {
-                            palmOrBack = "back"
-                        }
-                        //imageanalysis
-                        val matrix = Matrix()
+                        if(framecount>15){
+                            var bitmap = handsResult.inputBitmap()
+                            if (imageView?.calculatehandedness(handsResult) == true) {
+                                leftOrRight = "right"
+                            } else {
+                                leftOrRight = "left"
+                            }
+                            if (imageView?.frontOrBack(handsResult) == true) {
+                                palmOrBack = "palm"
+                            } else {
+                                palmOrBack = "back"
+                            }
+                            //imageanalysis
+                            val matrix = Matrix()
 
-                        matrix.postRotate(180f)
-                        val cx = bitmap.width / 2f
-                        val cy = bitmap.height / 2f
+                            matrix.postRotate(180f)
+                            val cx = bitmap.width / 2f
+                            val cy = bitmap.height / 2f
 
-                        val scaledBitmap = Bitmap.createScaledBitmap(bitmap, bitmap.width, bitmap.height, true)
-                        val rotatedBitmap = Bitmap.createBitmap(
-                            scaledBitmap,
-                            0,
-                            0,
-                            scaledBitmap.width,
-                            scaledBitmap.height,
-                            matrix,
-                            true
-                        )
+                            val scaledBitmap = Bitmap.createScaledBitmap(bitmap, bitmap.width, bitmap.height, true)
+                            val rotatedBitmap = Bitmap.createBitmap(
+                                scaledBitmap,
+                                0,
+                                0,
+                                scaledBitmap.width,
+                                scaledBitmap.height,
+                                matrix,
+                                true
+                            )
                         val flippedBitmap = rotatedBitmap.flip(-1f, 1f, cx, cy)
 
                         var uri = SaveImage(flippedBitmap)
@@ -198,11 +202,18 @@ class CameraActivity : AppCompatActivity(){
                         i.putExtra("frontOrBack_intent", palmOrBack)
                         setResult(78, i)
                         finish()
-                    } else if (area in 0.0..1.0) {
+                        }
+
+                    } else if (area in 0.0..0.3) {
                         runOnUiThread{guide.text = "Bring palm closer"}
-                    } else if (area > 1.3){
+                        framecount = 0
+                    } else if (area > 1.0){
                         runOnUiThread{guide.text = "Place palm further"}
+                        framecount = 0
                     }
+                } else {
+                    framecount = 0
+                    runOnUiThread{guide.text = "Place palm inside circle"}
                 }
             })
 
